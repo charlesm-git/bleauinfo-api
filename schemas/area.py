@@ -7,6 +7,7 @@ class Area(BaseModel):
     id: int
     name: str
     url: str
+    region_id: int
 
     class Config:
         orm_mode = True
