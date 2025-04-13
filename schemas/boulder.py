@@ -3,8 +3,7 @@ from pydantic import BaseModel
 
 from schemas.area import Area
 from schemas.grade import Grade
-from schemas.repetition import Repetition, RepetitionRead
-from schemas.user import User
+from schemas.repetition import RepetitionRead
 from schemas.style import Style
 
 
@@ -18,6 +17,7 @@ class Boulder(BaseModel):
 
     class Config:
         orm_mode = True
+
 
 class BoulderDetail(BaseModel):
     id: int

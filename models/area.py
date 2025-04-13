@@ -30,7 +30,10 @@ class Area(Base):
     )
 
     def __repr__(self):
-        return f"<Area(name: {self.name}, url: {self.url}, status: {self.status})>"
+        return (
+            f"<Area(name: {self.name}, url: {self.url}, "
+            f"status: {self.status})>"
+        )
 
     @classmethod
     def get_all(cls, db):

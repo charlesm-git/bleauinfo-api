@@ -8,6 +8,7 @@ from models.boulder_setter import boulder_setter_table
 import models.boulder
 import models.repetition
 
+
 class User(Base):
     __tablename__ = "user"
 
