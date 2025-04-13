@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 from schemas.area import Area
 from schemas.grade import Grade
-from schemas.repetition import Repetition
+from schemas.repetition import Repetition, RepetitionRead
 from schemas.user import User
 from schemas.style import Style
 
@@ -29,7 +29,7 @@ class BoulderDetail(BaseModel):
     rating: float | None = None
     number_of_rating: int = 0
     url: str
-    repetition_users: List[User] = []
+    repetitions: List[RepetitionRead] = []
 
     class Config:
         orm_mode = True

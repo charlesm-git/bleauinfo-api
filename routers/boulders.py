@@ -14,8 +14,9 @@ def read_boulders(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, le=100),
     db: Session = Depends(get_db_session),
+    style: str = None,
 ) -> List[Boulder]:
-    return get_all_boulders(db=db, skip=skip, limit=limit)
+    return get_all_boulders(db=db, skip=skip, limit=limit, style=style)
 
 
 @router.get("/boulders/{id}")
@@ -23,5 +24,5 @@ def read_boulder(
     id: int,
     db: Session = Depends(get_db_session),
 ) -> BoulderDetail:
-    boulder = get_boulder(db=db, boulder_id=id)
+    boulder = get_boulder(db=db, id=id)
     return boulder

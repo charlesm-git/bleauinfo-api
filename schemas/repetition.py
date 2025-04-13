@@ -11,3 +11,11 @@ class Repetition(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class RepetitionRead(BaseModel):
+    user: User
+    log_date: date
+
+    class Config:
+        orm_mode = True
