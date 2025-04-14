@@ -57,6 +57,3 @@ class Boulder(Base):
         return (f"<Boulder(name: {self.name}, grade: {self.grade.value}, "
                 f"setters: {self.setters}, repetitions: {self.repetitions})")
 
-    @property
-    def repetition_users(self):
-        return [rep.user for rep in self.repetitions]

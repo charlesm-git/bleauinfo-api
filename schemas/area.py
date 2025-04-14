@@ -10,7 +10,7 @@ class Area(BaseModel):
     region_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class AreaDetail(BaseModel):
@@ -21,4 +21,4 @@ class AreaDetail(BaseModel):
     region: Region
 
     class Config:
-        orm_mode = True
+        from_attributes = True

@@ -8,8 +8,9 @@ from crud.users import (
     get_user,
     get_boulders_set_by,
     get_boulders_repeated_by,
+    get_user_stats,
 )
-from schemas.user import User, UserDetail
+from schemas.user import User, UserDetail, UserStats
 from schemas.boulder import Boulder
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -48,3 +49,7 @@ def read_boulders_repeated_by(
 ) -> List[Boulder]:
     boulders = get_boulders_repeated_by(db=db, user_id=id)
     return boulders
+
+@router.get("/{id}/stats")
+def read_user_stats(id: int, db: Session = Depends(get_db_session)) -> UserStats:
+    return get_user_stats(db=db, user_id=id)

@@ -16,7 +16,7 @@ class Boulder(BaseModel):
     url: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class BoulderDetail(BaseModel):
@@ -32,4 +32,4 @@ class BoulderDetail(BaseModel):
     repetitions: List[RepetitionRead] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True

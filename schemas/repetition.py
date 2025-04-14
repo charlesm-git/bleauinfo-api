@@ -10,7 +10,7 @@ class Repetition(BaseModel):
     log_date: date
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class RepetitionRead(BaseModel):
@@ -18,4 +18,4 @@ class RepetitionRead(BaseModel):
     log_date: date
 
     class Config:
-        orm_mode = True
+        from_attributes = True

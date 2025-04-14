@@ -6,4 +6,4 @@ class Style(BaseModel):
     style: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
