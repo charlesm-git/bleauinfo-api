@@ -1,10 +1,7 @@
+from __future__ import annotations
+
 from typing import List
 from pydantic import BaseModel
-
-from schemas.area import Area
-from schemas.grade import Grade
-from schemas.repetition import RepetitionRead
-from schemas.style import Style
 
 
 class Boulder(BaseModel):
@@ -22,14 +19,20 @@ class Boulder(BaseModel):
 class BoulderDetail(BaseModel):
     id: int
     name: str
-    grade: Grade
-    slash_grade: Grade | None = None
-    area: Area
-    styles: List[Style] = []
+    grade: "Grade"
+    slash_grade: "Grade" = None
+    area: "Area"
+    styles: List["Style"] = []
     rating: float | None = None
     number_of_rating: int = 0
     url: str
-    repetitions: List[RepetitionRead] = []
+    repetitions: List["RepetitionRead"] = []
 
     class Config:
         from_attributes = True
+
+
+from schemas.area import Area
+from schemas.grade import Grade
+from schemas.repetition import RepetitionRead
+from schemas.style import Style

@@ -1,8 +1,8 @@
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Union
 from pydantic import BaseModel
 
-from schemas.area import Area
 from schemas.grade import Grade
+from schemas.area import Area
 
 
 class User(BaseModel):

@@ -2,9 +2,9 @@ from typing import List
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from crud.areas import get_all_areas, get_area, get_boulders_from_area
+from crud.areas import get_all_areas, get_area, get_area_stats, get_boulders_from_area
 from database import get_db_session
-from schemas.area import Area, AreaDetail
+from schemas.area import Area, AreaDetail, AreaStats
 from schemas.boulder import Boulder
 
 router = APIRouter(prefix="/areas", tags=["areas"])
@@ -34,3 +34,10 @@ def read_boulders_from_area(
 ) -> List[Boulder]:
     boulders = get_boulders_from_area(db=db, area_id=id)
     return boulders
+
+
+@router.get("/{id}/stats")
+def read_area_stats(
+    id: int, db: Session = Depends(get_db_session)
+) -> AreaStats:
+    return get_area_stats(db=db, area_id=id)
