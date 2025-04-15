@@ -6,9 +6,9 @@ from models.grade import Grade
 from models.repetition import Repetition
 from models.user import User
 from models.boulder_setter import boulder_setter_table
+from schemas.area import AreaRepetition
 from schemas.user import UserStats
-from schemas.grade import Grade as GradeSchema
-from schemas.area import Area as AreaSchema
+from schemas.grade import GradeRepetition
 
 
 def get_all_users(
@@ -87,8 +87,11 @@ def get_grade_distribution(db: Session, user_id: int):
         .group_by(Grade.value)
         .order_by(desc(Grade.correspondence)),
     ).all()
-    
-    return [{"grade": grade, "count": count} for grade, count in result]
+
+    return [
+        GradeRepetition(grade=grade, number_of_repetition=count)
+        for grade, count in result
+    ]
 
 
 def get_area_distribution(db: Session, user_id: int):
@@ -103,7 +106,11 @@ def get_area_distribution(db: Session, user_id: int):
         .group_by(Area)
         .order_by(desc("number_of_repetitions"))
     ).all()
-    return [{"area": area, "count": count} for area, count in result]
+    return [
+        AreaRepetition(area=area, number_of_repetition=count)
+        for area, count in result
+    ]
+
 
 def get_user_stats(db: Session, user_id: int):
     username = get_username_from_id(db, user_id)
@@ -112,7 +119,6 @@ def get_user_stats(db: Session, user_id: int):
     average_grade = get_average_grade(db, user_id)
     hardest_grade = get_hardest_grade(db, user_id)
     area_distribution = get_area_distribution(db, user_id)
-
 
     return UserStats(
         username=username,

@@ -50,6 +50,9 @@ def read_boulders_repeated_by(
     boulders = get_boulders_repeated_by(db=db, user_id=id)
     return boulders
 
+
 @router.get("/{id}/stats")
-def read_user_stats(id: int, db: Session = Depends(get_db_session)) -> UserStats:
+def read_user_stats(
+    id: int, db: Session = Depends(get_db_session)
+) -> UserStats:
     return get_user_stats(db=db, user_id=id)

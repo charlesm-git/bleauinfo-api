@@ -1,8 +1,8 @@
-from typing import Dict, List, Union
+from typing import List
 from pydantic import BaseModel
 
-from schemas.grade import Grade
-from schemas.area import Area
+from schemas.grade import Grade, GradeRepetition
+from schemas.area import AreaRepetition
 
 
 class User(BaseModel):
@@ -27,8 +27,8 @@ class UserStats(BaseModel):
     total_boulders_repeated: int
     average_grade: Grade
     hardest_grade: Grade
-    grade_distribution: List[Dict[str, Union[Grade, int]]]
-    area_distribution: List[Dict[str, Union[Area, int]]]
+    grade_distribution: List[GradeRepetition]
+    area_distribution: List[AreaRepetition]
 
     class Config:
         from_attributes = True

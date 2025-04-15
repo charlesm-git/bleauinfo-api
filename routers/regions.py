@@ -1,11 +1,10 @@
 from typing import List
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from crud.regions import get_all_regions, get_areas_from_region
 from database import get_db_session
-from schemas.area import Area, AreaDetail
-from schemas.boulder import Boulder
+from schemas.area import Area
 from schemas.region import Region
 
 router = APIRouter(prefix="/regions", tags=["regions"])

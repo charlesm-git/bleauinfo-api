@@ -35,6 +35,13 @@ class AreaStats(BaseModel):
     most_climbed_boulders: List[Dict[str, Union["Boulder", int]]]
 
 
+class AreaRepetition(BaseModel):
+    area: Area
+    number_of_repetition: int
+
+    class Config:
+        from_attributes = True
+
 
 from schemas.grade import Grade
 from schemas.region import Region

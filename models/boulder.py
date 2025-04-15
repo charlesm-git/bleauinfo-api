@@ -54,5 +54,4 @@ class Boulder(Base):
     )
 
     def __repr__(self):
-        return (f"<Boulder(name: {self.name}, grade: {self.grade.value}>")
-
+        return f"<Boulder(name: {self.name}, grade: {self.grade.value}>"

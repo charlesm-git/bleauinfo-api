@@ -10,6 +10,7 @@ class Boulder(BaseModel):
     grade_id: int
     slash_grade_id: int | None = None
     area_id: int
+    rating: float | None = None
     url: str
 
     class Config:
@@ -27,6 +28,14 @@ class BoulderDetail(BaseModel):
     number_of_rating: int = 0
     url: str
     repetitions: List["RepetitionRead"] = []
+
+    class Config:
+        from_attributes = True
+
+
+class BoulderRepetition(BaseModel):
+    boulder: Boulder
+    number_of_repetition: int
 
     class Config:
         from_attributes = True
