@@ -4,13 +4,21 @@ from sqlalchemy.orm import Session
 
 from crud.stats import (
     get_best_rated_boulders,
+    get_most_repeated_areas,
     get_most_repeated_boulders,
     get_hardest_boulders,
-    get_grade_distribution
+    get_grade_distribution,
+    get_boulders_rating_distribution,
+    get_style_distribution,
+    get_top_repeaters,
+    get_top_setters,
 )
 from database import get_db_session
-from schemas.boulder import Boulder, BoulderRepetition
+from schemas.area import AreaRepetition
+from schemas.boulder import Boulder, BoulderRepetition, RatingCount
 from schemas.grade import GradeDistribution
+from schemas.style import StyleDistribution
+from schemas.user import UserBoulderCount
 
 router = APIRouter(prefix="/stats", tags=["stats"])
 
@@ -43,9 +51,49 @@ def read_boulders_hardest(
     return boulders
 
 
+@router.get("/boulders/ratings/distribution")
+def read_rating_distribution(
+    db: Session = Depends(get_db_session), exclude_traverse: bool = False
+) -> List[RatingCount]:
+    boulders = get_boulders_rating_distribution(db=db)
+    return boulders
+
+
+@router.get("/boulders/styles/distribution")
+def read_style_distribution(
+    db: Session = Depends(get_db_session),
+) -> List[StyleDistribution]:
+    boulders = get_style_distribution(db=db)
+    return boulders
+
+
+@router.get("/areas/most-repeats")
+def read_style_distribution(
+    db: Session = Depends(get_db_session),
+) -> List[AreaRepetition]:
+    boulders = get_most_repeated_areas(db=db)
+    return boulders
+
+
 @router.get("/grades/distribution")
 def read_grade_distribution(
     db: Session = Depends(get_db_session),
 ) -> List[GradeDistribution]:
     boulders = get_grade_distribution(db=db)
+    return boulders
+
+
+@router.get("/users/top-repeaters")
+def read_top_repeaters(
+    db: Session = Depends(get_db_session),
+) -> List[UserBoulderCount]:
+    boulders = get_top_repeaters(db=db)
+    return boulders
+
+
+@router.get("/users/top-setters")
+def read_top_setters(
+    db: Session = Depends(get_db_session),
+) -> List[UserBoulderCount]:
+    boulders = get_top_setters(db=db)
     return boulders

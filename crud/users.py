@@ -49,9 +49,8 @@ def get_username_from_id(db: Session, user_id: int):
 
 def get_total_boulder_repeated(db: Session, user_id: int):
     return db.scalar(
-        select(func.count(User.repetitions))
-        .where(User.id == user_id)
-        .join(Repetition, User.id == Repetition.user_id)
+        select(func.count(Repetition.boulder_id))
+        .where(Repetition.user_id == user_id)
     )
 
 

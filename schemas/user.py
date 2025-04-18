@@ -13,13 +13,8 @@ class User(BaseModel):
         from_attributes = True
 
 
-class UserDetail(BaseModel):
-    id: int
-    username: str
+class UserDetail(User):
     url: str
-
-    class Config:
-        from_attributes = True
 
 
 class UserStats(BaseModel):
@@ -32,3 +27,7 @@ class UserStats(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class UserBoulderCount(User):
+    boulder_count: int

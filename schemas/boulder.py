@@ -40,6 +40,10 @@ class BoulderRepetition(BaseModel):
     class Config:
         from_attributes = True
 
+class RatingCount(BaseModel):
+    rating: float | None
+    count: int
+
 
 from schemas.area import Area
 from schemas.grade import Grade
