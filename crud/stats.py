@@ -1,4 +1,14 @@
-from sqlalchemy import and_, desc, exists, func, select, case
+from sqlalchemy import (
+    Float,
+    and_,
+    cast,
+    desc,
+    exists,
+    func,
+    null,
+    select,
+    case,
+)
 from sqlalchemy.orm import Session
 from models.area import Area
 from models.boulder import Boulder
@@ -11,8 +21,9 @@ from models.user import User
 from schemas.area import AreaRepetition
 from schemas.boulder import BoulderRepetition, RatingCount
 from schemas.grade import GradeDistribution
+from schemas.repetition import RepetitionPerMonth, RepetitionPerYear
 from schemas.style import StyleDistribution
-from schemas.user import UserBoulderCount
+from schemas.user import UserBoulderCount, UserRepetitionVolume
 
 
 def get_best_rated_boulders(db: Session, grade: str):
@@ -133,9 +144,10 @@ def get_grade_distribution(db: Session):
 
 def get_style_distribution(db: Session):
     result = db.execute(
-        select(Style.style, func.count(Style.boulders).label("boulder_count"))
+        select(Style.style, func.count(Boulder.id).label("boulder_count"))
         .join(boulder_style_table, Style.id == boulder_style_table.c.style_id)
         .join(Boulder, Boulder.id == boulder_style_table.c.boulder_id)
+        .group_by(Style.style)
         .order_by(desc("boulder_count"))
     ).all()
 
@@ -197,18 +209,111 @@ def get_repeats_volume_distribution(db: Session):
 
     # Categorize users by repetition count
     category_case = case(
-        (user_counts.c.repeat_count < 10, "0–9"),
-        (user_counts.c.repeat_count < 50, "10–49"),
-        (user_counts.c.repeat_count < 2000, "50–1999"),
-        else_="1999+",
+        (user_counts.c.repeat_count < 20, "1–19"),
+        (user_counts.c.repeat_count < 50, "20–49"),
+        (user_counts.c.repeat_count < 100, "50–99"),
+        (user_counts.c.repeat_count < 200, "100–199"),
+        (user_counts.c.repeat_count < 500, "200–499"),
+        (user_counts.c.repeat_count < 1000, "500–999"),
+        else_="1000+",
     )
 
     # Final query: count users per range
 
     results = db.execute(
-        select(category_case, func.count(category_case)).group_by(
-            category_case
-        )
+        select(category_case, func.count(category_case).label("count"))
+        .group_by(category_case)
+        .order_by(desc("count"))
     ).all()
 
-    return results
+    return [
+        UserRepetitionVolume(group=group, number_of_users=count)
+        for group, count in results
+    ]
+
+
+def get_repeats_per_month(db: Session, grade: str = None):
+    query_filter = []
+    join_clause = Repetition
+
+    if grade:
+        grade_subquery = (
+            select(Grade.correspondence)
+            .where(Grade.value == grade)
+            .scalar_subquery()
+        )
+
+        query_filter.append(Grade.correspondence >= grade_subquery)
+
+        join_clause = Repetition.__table__.join(
+            Boulder, Repetition.boulder_id == Boulder.id
+        ).join(Grade, Boulder.grade_id == Grade.id)
+
+    total_repeats = (
+        select(func.count(Repetition.user_id))
+        .select_from(join_clause)
+        .where(*query_filter)
+        .scalar_subquery()
+    )
+    main_query = (
+        select(
+            func.extract("month", Repetition.log_date).label("month"),
+            func.round(
+                (
+                    func.count(Repetition.user_id)
+                    * 100
+                    / cast(total_repeats, Float)
+                ),
+                1,
+            ),
+        )
+        .select_from(join_clause)
+        .where(*query_filter)
+        .group_by("month")
+        .order_by("month")
+    )
+
+    result = db.execute(main_query).all()
+    return [
+        RepetitionPerMonth(month=month, pourcentage=pourcentage)
+        for month, pourcentage in result
+    ]
+
+
+def get_repeats_per_year(db: Session, grade: str = None):
+    query_filter = []
+    join_clause = Repetition
+
+    if grade:
+        grade_subquery = (
+            select(Grade.correspondence)
+            .where(Grade.value == grade)
+            .scalar_subquery()
+        )
+
+        query_filter.append(Grade.correspondence >= grade_subquery)
+
+        join_clause = Repetition.__table__.join(
+            Boulder, Repetition.boulder_id == Boulder.id
+        ).join(Grade, Boulder.grade_id == Grade.id)
+
+    main_query = (
+        select(
+            func.extract("year", Repetition.log_date).label("year"),
+            func.count(Repetition.user_id),
+        )
+        .select_from(join_clause)
+        .where(
+            and_(
+                *query_filter,
+                func.extract("year", Repetition.log_date) >= 1995
+            )
+        )
+        .group_by("year")
+        .order_by("year")
+    )
+    result = db.execute(main_query).all()
+    return [
+        RepetitionPerYear(year=year, number_of_repetition=number_of_repetition)
+        for year, number_of_repetition in result
+    ]

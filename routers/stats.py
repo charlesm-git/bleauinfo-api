@@ -9,16 +9,20 @@ from crud.stats import (
     get_hardest_boulders,
     get_grade_distribution,
     get_boulders_rating_distribution,
+    get_repeats_volume_distribution,
     get_style_distribution,
     get_top_repeaters,
     get_top_setters,
+    get_repeats_per_month,
+    get_repeats_per_year,
 )
 from database import get_db_session
 from schemas.area import AreaRepetition
 from schemas.boulder import Boulder, BoulderRepetition, RatingCount
 from schemas.grade import GradeDistribution
+from schemas.repetition import RepetitionPerMonth, RepetitionPerYear
 from schemas.style import StyleDistribution
-from schemas.user import UserBoulderCount
+from schemas.user import UserBoulderCount, UserRepetitionVolume
 
 router = APIRouter(prefix="/stats", tags=["stats"])
 
@@ -68,7 +72,7 @@ def read_style_distribution(
 
 
 @router.get("/areas/most-repeats")
-def read_style_distribution(
+def read_area_with_most_repeats(
     db: Session = Depends(get_db_session),
 ) -> List[AreaRepetition]:
     boulders = get_most_repeated_areas(db=db)
@@ -96,4 +100,28 @@ def read_top_setters(
     db: Session = Depends(get_db_session),
 ) -> List[UserBoulderCount]:
     boulders = get_top_setters(db=db)
+    return boulders
+
+
+@router.get("/users/repeats-volume")
+def read_users_per_repeats_volume(
+    db: Session = Depends(get_db_session),
+) -> List[UserRepetitionVolume]:
+    boulders = get_repeats_volume_distribution(db=db)
+    return boulders
+
+
+@router.get("/repeats/per-month")
+def read_repeats_per_month(
+    db: Session = Depends(get_db_session), grade: str = None
+) -> List[RepetitionPerMonth]:
+    boulders = get_repeats_per_month(db=db, grade=grade)
+    return boulders
+
+
+@router.get("/repeats/per-year")
+def read_repeats_per_year(
+    db: Session = Depends(get_db_session), grade: str = None
+) -> List[RepetitionPerYear]:
+    boulders = get_repeats_per_year(db=db, grade=grade)
     return boulders

@@ -31,3 +31,9 @@ class UserStats(BaseModel):
 
 class UserBoulderCount(User):
     boulder_count: int
+
+class UserRepetitionVolume(BaseModel):
+    group: str
+    number_of_users: int
+    class Config:
+        from_attributes = True
