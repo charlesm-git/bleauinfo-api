@@ -20,14 +20,18 @@ class RepetitionRead(BaseModel):
     class Config:
         from_attributes = True
 
+
 class RepetitionPerMonth(BaseModel):
     month: int
     pourcentage: float
+
     class Config:
         from_attributes = True
-        
+
+
 class RepetitionPerYear(BaseModel):
     year: int
     number_of_repetition: int
+
     class Config:
         from_attributes = True

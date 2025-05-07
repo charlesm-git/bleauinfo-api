@@ -7,10 +7,11 @@ class Style(BaseModel):
 
     class Config:
         from_attributes = True
-        
+
+
 class StyleDistribution(BaseModel):
     style: str
     boulder_count: int
-    
+
     class Config:
         from_attributes = True

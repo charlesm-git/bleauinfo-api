@@ -40,6 +40,7 @@ class BoulderRepetition(BaseModel):
     class Config:
         from_attributes = True
 
+
 class RatingCount(BaseModel):
     rating: float | None
     count: int

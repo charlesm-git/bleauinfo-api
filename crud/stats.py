@@ -5,7 +5,6 @@ from sqlalchemy import (
     desc,
     exists,
     func,
-    null,
     select,
     case,
 )
