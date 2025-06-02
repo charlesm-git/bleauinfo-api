@@ -27,7 +27,7 @@ class BoulderDetail(BaseModel):
     rating: float | None = None
     number_of_rating: int = 0
     url: str
-    repetitions: List["RepetitionRead"] = []
+    repetitions: List["AscentRead"] = []
 
     class Config:
         from_attributes = True
@@ -35,7 +35,20 @@ class BoulderDetail(BaseModel):
 
 class BoulderRepetition(BaseModel):
     boulder: Boulder
+    area: "Area"
     number_of_repetition: int
+
+    class Config:
+        from_attributes = True
+
+
+class BoulderArea(BaseModel):
+    id: int
+    name: str
+    rating: float | None = None
+    number_of_rating: int = 0
+    url: str
+    area: "Area"
 
     class Config:
         from_attributes = True
@@ -48,5 +61,5 @@ class RatingCount(BaseModel):
 
 from schemas.area import Area
 from schemas.grade import Grade
-from schemas.repetition import RepetitionRead
+from schemas.ascent import AscentRead
 from schemas.style import Style

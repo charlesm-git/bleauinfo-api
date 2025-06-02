@@ -1,7 +1,7 @@
 from typing import List
 from pydantic import BaseModel
 
-from schemas.grade import Grade, GradeRepetition
+from schemas.grade import Grade, GradeAscents
 from schemas.area import AreaRepetition
 
 
@@ -22,7 +22,7 @@ class UserStats(BaseModel):
     total_boulders_repeated: int
     average_grade: Grade
     hardest_grade: Grade
-    grade_distribution: List[GradeRepetition]
+    grade_distribution: List[GradeAscents]
     area_distribution: List[AreaRepetition]
 
     class Config:

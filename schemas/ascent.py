@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from schemas.user import User
 
 
-class Repetition(BaseModel):
+class Ascent(BaseModel):
     boulder_id: int
     user_id: int
     log_date: date
@@ -13,7 +13,7 @@ class Repetition(BaseModel):
         from_attributes = True
 
 
-class RepetitionRead(BaseModel):
+class AscentRead(BaseModel):
     user: User
     log_date: date
 
@@ -21,17 +21,17 @@ class RepetitionRead(BaseModel):
         from_attributes = True
 
 
-class RepetitionPerMonth(BaseModel):
-    month: int
-    pourcentage: float
+class AscentsPerMonth(BaseModel):
+    month: str
+    percentage: float
 
     class Config:
         from_attributes = True
 
 
-class RepetitionPerYear(BaseModel):
+class AscentsPerYear(BaseModel):
     year: int
-    number_of_repetition: int
+    ascents: int
 
     class Config:
         from_attributes = True

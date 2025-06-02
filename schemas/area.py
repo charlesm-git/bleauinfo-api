@@ -8,6 +8,7 @@ class Area(BaseModel):
     id: int
     name: str
     url: str
+    status: str | None = None
     region_id: int
 
     class Config:
@@ -37,7 +38,7 @@ class AreaStats(BaseModel):
 
 class AreaRepetition(BaseModel):
     area: Area
-    number_of_repetition: int
+    ascents: int
 
     class Config:
         from_attributes = True

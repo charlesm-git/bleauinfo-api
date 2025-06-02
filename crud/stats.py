@@ -8,7 +8,7 @@ from sqlalchemy import (
     select,
     case,
 )
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from models.area import Area
 from models.boulder import Boulder
 from models.boulder_style import boulder_style_table
@@ -18,15 +18,15 @@ from models.repetition import Repetition
 from models.style import Style
 from models.user import User
 from schemas.area import AreaRepetition
-from schemas.boulder import BoulderRepetition, RatingCount
-from schemas.grade import GradeDistribution
-from schemas.repetition import RepetitionPerMonth, RepetitionPerYear
+from schemas.boulder import BoulderArea, BoulderRepetition, RatingCount
+from schemas.grade import GradeDistribution, GradeAscents
+from schemas.ascent import AscentsPerMonth, AscentsPerYear
 from schemas.style import StyleDistribution
 from schemas.user import UserBoulderCount, UserRepetitionVolume
 
 
 def get_best_rated_boulders(db: Session, grade: str):
-    return db.scalars(
+    result = db.scalars(
         select(Boulder)
         .where(
             and_(
@@ -36,18 +36,23 @@ def get_best_rated_boulders(db: Session, grade: str):
             )
         )
         .join(Boulder.grade)
+        .options(joinedload(Boulder.area))
         .order_by(desc(Boulder.rating))
     ).all()
 
+    return result
 
-def get_most_repeated_boulders(db: Session, grade: str):
+
+def get_most_ascents_boulders(db: Session, grade: str):
     result = db.execute(
         select(
             Boulder,
+            Area,
             func.count(Repetition.user_id).label("number_of_repetition"),
         )
         .join(Repetition, Boulder.id == Repetition.boulder_id)
         .join(Grade, Boulder.grade_id == Grade.id)
+        .join(Area, Boulder.area_id == Area.id)
         .where(Grade.value == grade)
         .group_by(Repetition.boulder_id)
         .order_by(desc("number_of_repetition"))
@@ -56,9 +61,11 @@ def get_most_repeated_boulders(db: Session, grade: str):
 
     return [
         BoulderRepetition(
-            boulder=boulder, number_of_repetition=number_of_repetition
+            boulder=boulder,
+            area=area,
+            number_of_repetition=number_of_repetition,
         )
-        for boulder, number_of_repetition in result
+        for boulder, area, number_of_repetition in result
     ]
 
 
@@ -112,20 +119,17 @@ def get_boulders_rating_distribution(db: Session):
     ]
 
 
-def get_most_repeated_areas(db: Session):
+def get_most_ascents_areas(db: Session):
     result = db.execute(
         select(Area, func.count(Repetition.user_id).label("repetition_count"))
         .join(Boulder, Boulder.area_id == Area.id)
         .join(Repetition, Repetition.boulder_id == Boulder.id)
         .group_by(Area.id)
         .order_by(desc("repetition_count"))
-        .limit(20)
+        .limit(10)
     ).all()
 
-    return [
-        AreaRepetition(area=area, number_of_repetition=count)
-        for area, count in result
-    ]
+    return [AreaRepetition(area=area, ascents=count) for area, count in result]
 
 
 def get_grade_distribution(db: Session):
@@ -136,7 +140,7 @@ def get_grade_distribution(db: Session):
     ).all()
 
     return [
-        GradeDistribution(grade=grade, boulder_count=boulder_count)
+        GradeDistribution(grade=grade, boulders=boulder_count)
         for grade, boulder_count in result
     ]
 
@@ -231,7 +235,7 @@ def get_repeats_volume_distribution(db: Session):
     ]
 
 
-def get_repeats_per_month(db: Session, grade: str = None):
+def get_ascents_per_month(db: Session, grade: str = None):
     query_filter = []
     join_clause = Repetition
 
@@ -273,13 +277,33 @@ def get_repeats_per_month(db: Session, grade: str = None):
     )
 
     result = db.execute(main_query).all()
+
+    month_list = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+    ]
+
+    data = [
+        (month_list[month - 1], percentage) for month, percentage in result
+    ]
+
     return [
-        RepetitionPerMonth(month=month, pourcentage=pourcentage)
-        for month, pourcentage in result
+        AscentsPerMonth(month=month, percentage=pourcentage)
+        for month, pourcentage in data
     ]
 
 
-def get_repeats_per_year(db: Session, grade: str = None):
+def get_ascents_per_year(db: Session, grade: str = None):
     query_filter = []
     join_clause = Repetition
 
@@ -313,6 +337,20 @@ def get_repeats_per_year(db: Session, grade: str = None):
     )
     result = db.execute(main_query).all()
     return [
-        RepetitionPerYear(year=year, number_of_repetition=number_of_repetition)
+        AscentsPerYear(year=year, ascents=number_of_repetition)
         for year, number_of_repetition in result
+    ]
+
+
+def get_ascents_per_grade(db: Session):
+    result = db.execute(
+        select(Grade, func.count(Repetition.boulder_id))
+        .join(Boulder, Boulder.grade_id == Grade.id)
+        .join(Repetition, Boulder.id == Repetition.user_id)
+        .group_by(Grade.id)
+        .order_by(Grade.correspondence)
+    ).all()
+
+    return [
+        GradeAscents(grade=grade, ascents=ascents) for grade, ascents in result
     ]

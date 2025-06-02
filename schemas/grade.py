@@ -12,15 +12,15 @@ class Grade(BaseModel):
 
 class GradeDistribution(BaseModel):
     grade: Grade
-    boulder_count: int
+    boulders: int
 
     class Config:
         from_attributes = True
 
 
-class GradeRepetition(BaseModel):
+class GradeAscents(BaseModel):
     grade: Grade
-    number_of_repetition: int
+    ascents: int
 
     class Config:
         from_attributes = True

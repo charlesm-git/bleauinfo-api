@@ -4,46 +4,52 @@ from sqlalchemy.orm import Session
 
 from crud.stats import (
     get_best_rated_boulders,
-    get_most_repeated_areas,
-    get_most_repeated_boulders,
+    get_most_ascents_areas,
+    get_most_ascents_boulders,
     get_hardest_boulders,
     get_grade_distribution,
     get_boulders_rating_distribution,
+    get_ascents_per_grade,
     get_repeats_volume_distribution,
     get_style_distribution,
     get_top_repeaters,
     get_top_setters,
-    get_repeats_per_month,
-    get_repeats_per_year,
+    get_ascents_per_month,
+    get_ascents_per_year,
 )
 from database import get_db_session
 from schemas.area import AreaRepetition
-from schemas.boulder import Boulder, BoulderRepetition, RatingCount
-from schemas.grade import GradeDistribution
-from schemas.repetition import RepetitionPerMonth, RepetitionPerYear
+from schemas.boulder import (
+    Boulder,
+    BoulderArea,
+    BoulderRepetition,
+    RatingCount,
+)
+from schemas.grade import GradeDistribution, GradeAscents
+from schemas.ascent import AscentsPerMonth, AscentsPerYear
 from schemas.style import StyleDistribution
 from schemas.user import UserBoulderCount, UserRepetitionVolume
 
 router = APIRouter(prefix="/stats", tags=["stats"])
 
 
-@router.get("/boulders/best-rated")
+@router.get("/boulders/best-rated/{grade}")
 def read_boulders_best_rated(
     db: Session = Depends(get_db_session), grade: str = None
-) -> List[Boulder]:
+) -> List[BoulderArea]:
     if grade is None:
         raise HTTPException(status_code=422, detail="A grade must be provided")
     boulders = get_best_rated_boulders(db=db, grade=grade)
     return boulders
 
 
-@router.get("/boulders/most-repeats")
-def get_boulders_most_repeated(
+@router.get("/boulders/most-repeats/{grade}")
+def get_boulders_most_ascents(
     db: Session = Depends(get_db_session), grade: str = None
 ) -> List[BoulderRepetition]:
     if grade is None:
         raise HTTPException(status_code=422, detail="A grade must be provided")
-    boulders = get_most_repeated_boulders(db=db, grade=grade)
+    boulders = get_most_ascents_boulders(db=db, grade=grade)
     return boulders
 
 
@@ -72,10 +78,10 @@ def read_style_distribution(
 
 
 @router.get("/areas/most-repeats")
-def read_area_with_most_repeats(
+def read_area_with_most_ascents(
     db: Session = Depends(get_db_session),
 ) -> List[AreaRepetition]:
-    boulders = get_most_repeated_areas(db=db)
+    boulders = get_most_ascents_areas(db=db)
     return boulders
 
 
@@ -104,7 +110,7 @@ def read_top_setters(
 
 
 @router.get("/users/repeats-volume")
-def read_users_per_repeats_volume(
+def read_users_per_ascents_volume(
     db: Session = Depends(get_db_session),
 ) -> List[UserRepetitionVolume]:
     boulders = get_repeats_volume_distribution(db=db)
@@ -114,14 +120,22 @@ def read_users_per_repeats_volume(
 @router.get("/repeats/per-month")
 def read_repeats_per_month(
     db: Session = Depends(get_db_session), grade: str = None
-) -> List[RepetitionPerMonth]:
-    boulders = get_repeats_per_month(db=db, grade=grade)
-    return boulders
+) -> List[AscentsPerMonth]:
+    ascents = get_ascents_per_month(db=db, grade=grade)
+    return ascents
 
 
 @router.get("/repeats/per-year")
 def read_repeats_per_year(
     db: Session = Depends(get_db_session), grade: str = None
-) -> List[RepetitionPerYear]:
-    boulders = get_repeats_per_year(db=db, grade=grade)
-    return boulders
+) -> List[AscentsPerYear]:
+    ascents = get_ascents_per_year(db=db, grade=grade)
+    return ascents
+
+
+@router.get("/repeats/per-grade")
+def read_repeats_per_year(
+    db: Session = Depends(get_db_session),
+) -> List[GradeAscents]:
+    grades = get_ascents_per_grade(db=db)
+    return grades
