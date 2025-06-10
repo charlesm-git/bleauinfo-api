@@ -18,7 +18,7 @@ router = APIRouter(prefix="/areas", tags=["areas"])
 @router.get("/")
 def read_areas(
     skip: int = Query(0, ge=0),
-    limit: int = Query(20, le=100),
+    limit: int = Query(None),
     db: Session = Depends(get_db_session),
 ) -> List[Area]:
     return get_all_areas(db=db, skip=skip, limit=limit)

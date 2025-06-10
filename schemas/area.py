@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List, Union
+from typing import List, Union
 from pydantic import BaseModel
 
 
@@ -27,16 +27,19 @@ class AreaDetail(BaseModel):
 
 
 class AreaStats(BaseModel):
-    id: int
-    name: str
+    area: "AreaDetail"
     number_of_boulders: int
-    average_grade: "Grade"
+    average_grade: Union["Grade", None]
     total_number_of_repetition: int
-    grade_distribution: List[Dict[str, Union["Grade", int]]]
-    most_climbed_boulders: List[Dict[str, Union["Boulder", int]]]
+    grade_distribution: List["GradeDistribution"]
+    most_climbed_boulders: List["BoulderGradeAscent"]
+    best_rated_boulders: List["BoulderGradeAscent"]
+
+    class Config:
+        from_attributes = True
 
 
-class AreaRepetition(BaseModel):
+class AreaAscent(BaseModel):
     area: Area
     ascents: int
 
@@ -44,6 +47,6 @@ class AreaRepetition(BaseModel):
         from_attributes = True
 
 
-from schemas.grade import Grade
+from schemas.grade import Grade, GradeDistribution
 from schemas.region import Region
-from schemas.boulder import Boulder
+from schemas.boulder import BoulderGradeAscent

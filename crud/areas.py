@@ -1,13 +1,15 @@
-from sqlalchemy import desc, func, select
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import and_, desc, func, select
+from sqlalchemy.orm import Session, joinedload, outerjoin
 from models.area import Area
 from models.boulder import Boulder
 from models.grade import Grade
 from models.repetition import Repetition
 from schemas.area import AreaStats
+from schemas.boulder import BoulderGradeAscent
+from schemas.grade import GradeDistribution
 
 
-def get_all_areas(db: Session, skip: int = 0, limit: int = 20):
+def get_all_areas(db: Session, skip: int = 0, limit: int = None):
     return db.scalars(select(Area).offset(skip).limit(limit))
 
 
@@ -22,20 +24,21 @@ def get_boulders_from_area(db: Session, area_id: int):
 
 
 def get_area_stats(db: Session, area_id: int):
-    name = get_area(db, area_id).name
+    area = get_area(db, area_id)
     number_of_boulder = get_number_of_boulders(db, area_id)
     grade_distribution = get_grade_distribution(db, area_id)
     most_climbed_boulders = get_most_climbed_boulders(db, area_id)
     average_grade = get_average_grade(db, area_id)
     total_repetition = get_total_repetition(db, area_id)
+    best_rated_boulders = get_area_best_rated(db, area_id)
     return AreaStats(
-        id=area_id,
-        name=name,
+        area=area,
         number_of_boulders=number_of_boulder,
         grade_distribution=grade_distribution,
         most_climbed_boulders=most_climbed_boulders,
         average_grade=average_grade,
         total_number_of_repetition=total_repetition,
+        best_rated_boulders=best_rated_boulders,
     )
 
 
@@ -52,30 +55,39 @@ def get_number_of_boulders(db: Session, area_id: int):
 def get_grade_distribution(db: Session, area_id: int):
     result = db.execute(
         select(Grade, func.count(Boulder.id))
-        .where(Boulder.area_id == area_id)
+        .select_from(
+            outerjoin(
+                Grade,
+                Boulder,
+                (Boulder.grade_id == Grade.id) & (Boulder.area_id == area_id),
+            )
+        )
         .group_by(Grade.id)
-        .join(Boulder, Boulder.grade_id == Grade.id)
     ).all()
 
-    return [{"grade": grade, "count": count} for grade, count in result]
+    return [
+        GradeDistribution(grade=grade, boulders=boulders)
+        for grade, boulders in result
+    ]
 
 
 def get_most_climbed_boulders(db: Session, area_id: int, limit: int = 10):
     result = db.execute(
         select(
             Boulder,
-            func.count(Repetition.user_id).label("number_of_repetition"),
+            func.count(Repetition.user_id).label("ascents"),
         )
         .where(Boulder.area_id == area_id)
-        .order_by(desc("number_of_repetition"))
+        .options(joinedload(Boulder.grade), joinedload(Boulder.slash_grade))
+        .order_by(desc("ascents"))
         .join(Repetition, Boulder.id == Repetition.boulder_id)
         .group_by(Repetition.boulder_id)
         .limit(limit)
     ).all()
 
     return [
-        {"boulder": boulder, "number_of_repetition": number_of_repetition}
-        for boulder, number_of_repetition in result
+        BoulderGradeAscent(boulder=boulder, ascents=ascents)
+        for boulder, ascents in result
     ]
 
 
@@ -86,9 +98,13 @@ def get_average_grade(db: Session, area_id: int):
         .join(Boulder, Boulder.grade_id == Grade.id)
     ).scalar_subquery()
 
-    return db.scalar(
+    result = db.scalar(
         select(Grade).where(Grade.correspondence == func.round(subquery))
     )
+
+    if not result:
+        return None
+    return result
 
 
 def get_total_repetition(db: Session, area_id: int):
@@ -97,3 +113,25 @@ def get_total_repetition(db: Session, area_id: int):
         .where(Boulder.area_id == area_id)
         .join(Boulder, Boulder.id == Repetition.boulder_id)
     )
+
+
+def get_area_best_rated(db: Session, area_id: int):
+    result = db.execute(
+        select(Boulder, func.count(Repetition.user_id).label("ascents"))
+        .filter(
+            and_(
+                Boulder.area_id == area_id,
+                Boulder.rating >= 4,
+                Boulder.number_of_rating >= 5,
+            )
+        )
+        .options(joinedload(Boulder.grade), joinedload(Boulder.slash_grade))
+        .join(Repetition, Boulder.id == Repetition.boulder_id)
+        .group_by(Boulder.id)
+        .order_by(desc(Boulder.rating))
+    ).all()
+
+    return [
+        BoulderGradeAscent(boulder=boulder, ascents=ascents)
+        for boulder, ascents in result
+    ]

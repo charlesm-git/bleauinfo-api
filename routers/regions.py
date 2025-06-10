@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from crud.regions import get_all_regions, get_areas_from_region
 from database import get_db_session
 from schemas.area import Area
-from schemas.region import Region
+from schemas.region import RegionDetail
 
 router = APIRouter(prefix="/regions", tags=["regions"])
 
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/regions", tags=["regions"])
 @router.get("/")
 def read_regions(
     db: Session = Depends(get_db_session),
-) -> List[Region]:
+) -> List[RegionDetail]:
     return get_all_regions(db=db)
 
 

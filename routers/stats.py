@@ -18,11 +18,11 @@ from crud.stats import (
     get_ascents_per_year,
 )
 from database import get_db_session
-from schemas.area import AreaRepetition
+from schemas.area import AreaAscent
 from schemas.boulder import (
     Boulder,
     BoulderArea,
-    BoulderRepetition,
+    BoulderGradeAreaAscent,
     RatingCount,
 )
 from schemas.grade import GradeDistribution, GradeAscents
@@ -43,10 +43,10 @@ def read_boulders_best_rated(
     return boulders
 
 
-@router.get("/boulders/most-repeats/{grade}")
+@router.get("/boulders/most-ascents/{grade}")
 def get_boulders_most_ascents(
     db: Session = Depends(get_db_session), grade: str = None
-) -> List[BoulderRepetition]:
+) -> List[BoulderGradeAreaAscent]:
     if grade is None:
         raise HTTPException(status_code=422, detail="A grade must be provided")
     boulders = get_most_ascents_boulders(db=db, grade=grade)
@@ -77,10 +77,10 @@ def read_style_distribution(
     return boulders
 
 
-@router.get("/areas/most-repeats")
+@router.get("/areas/most-ascents")
 def read_area_with_most_ascents(
     db: Session = Depends(get_db_session),
-) -> List[AreaRepetition]:
+) -> List[AreaAscent]:
     boulders = get_most_ascents_areas(db=db)
     return boulders
 
@@ -134,7 +134,7 @@ def read_repeats_per_year(
 
 
 @router.get("/repeats/per-grade")
-def read_repeats_per_year(
+def read_repeats_per_grade(
     db: Session = Depends(get_db_session),
 ) -> List[GradeAscents]:
     grades = get_ascents_per_grade(db=db)

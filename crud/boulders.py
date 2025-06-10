@@ -26,6 +26,7 @@ def get_boulder(db: Session, id: int):
         .where(Boulder.id == id)
         .options(
             joinedload(Boulder.grade),
+            joinedload(Boulder.slash_grade),
             joinedload(Boulder.area),
             joinedload(Boulder.styles),
             joinedload(Boulder.repetitions),

@@ -1,54 +1,57 @@
 from __future__ import annotations
 
-from typing import List
+from typing import List, Union
 from pydantic import BaseModel
 
 
 class Boulder(BaseModel):
     id: int
     name: str
-    grade_id: int
-    slash_grade_id: int | None = None
-    area_id: int
     rating: float | None = None
+    number_of_rating: int = 0
     url: str
 
     class Config:
         from_attributes = True
 
 
-class BoulderDetail(BaseModel):
-    id: int
-    name: str
+class BoulderDetail(Boulder):
     grade: "Grade"
-    slash_grade: "Grade" = None
+    slash_grade: "Grade"
     area: "Area"
     styles: List["Style"] = []
-    rating: float | None = None
-    number_of_rating: int = 0
-    url: str
     repetitions: List["AscentRead"] = []
 
     class Config:
         from_attributes = True
 
 
-class BoulderRepetition(BaseModel):
-    boulder: Boulder
+class BoulderGrade(Boulder):
+    grade: "Grade"
+    slash_grade: Union["Grade", None] = None
+
+
+class BoulderArea(Boulder):
     area: "Area"
-    number_of_repetition: int
+
+
+class BoulderGradeArea(Boulder):
+    grade: "Grade"
+    slash_grade: Union["Grade", None] = None
+    area: Area
+
+
+class BoulderGradeAreaAscent(BaseModel):
+    boulder: BoulderGradeArea
+    ascents: int
 
     class Config:
         from_attributes = True
 
 
-class BoulderArea(BaseModel):
-    id: int
-    name: str
-    rating: float | None = None
-    number_of_rating: int = 0
-    url: str
-    area: "Area"
+class BoulderGradeAscent(BaseModel):
+    boulder: BoulderGrade
+    ascents: int
 
     class Config:
         from_attributes = True

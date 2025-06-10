@@ -6,7 +6,7 @@ from models.grade import Grade
 from models.repetition import Repetition
 from models.user import User
 from models.boulder_setter import boulder_setter_table
-from schemas.area import AreaRepetition
+from schemas.area import AreaAscent
 from schemas.user import UserStats
 from schemas.grade import GradeAscents
 
@@ -105,7 +105,7 @@ def get_area_distribution(db: Session, user_id: int):
         .group_by(Area)
         .order_by(desc("number_of_repetitions"))
     ).all()
-    return [AreaRepetition(area=area, ascents=count) for area, count in result]
+    return [AreaAscent(area=area, ascents=count) for area, count in result]
 
 
 def get_user_stats(db: Session, user_id: int):

@@ -17,8 +17,8 @@ from models.grade import Grade
 from models.repetition import Repetition
 from models.style import Style
 from models.user import User
-from schemas.area import AreaRepetition
-from schemas.boulder import BoulderArea, BoulderRepetition, RatingCount
+from schemas.area import AreaAscent
+from schemas.boulder import BoulderGradeAreaAscent, RatingCount
 from schemas.grade import GradeDistribution, GradeAscents
 from schemas.ascent import AscentsPerMonth, AscentsPerYear
 from schemas.style import StyleDistribution
@@ -47,12 +47,15 @@ def get_most_ascents_boulders(db: Session, grade: str):
     result = db.execute(
         select(
             Boulder,
-            Area,
             func.count(Repetition.user_id).label("number_of_repetition"),
         )
         .join(Repetition, Boulder.id == Repetition.boulder_id)
         .join(Grade, Boulder.grade_id == Grade.id)
-        .join(Area, Boulder.area_id == Area.id)
+        .options(
+            joinedload(Boulder.area),
+            joinedload(Boulder.grade),
+            joinedload(Boulder.slash_grade),
+        )
         .where(Grade.value == grade)
         .group_by(Repetition.boulder_id)
         .order_by(desc("number_of_repetition"))
@@ -60,12 +63,11 @@ def get_most_ascents_boulders(db: Session, grade: str):
     ).all()
 
     return [
-        BoulderRepetition(
+        BoulderGradeAreaAscent(
             boulder=boulder,
-            area=area,
-            number_of_repetition=number_of_repetition,
+            ascents=ascents,
         )
-        for boulder, area, number_of_repetition in result
+        for boulder, ascents in result
     ]
 
 
@@ -129,7 +131,7 @@ def get_most_ascents_areas(db: Session):
         .limit(10)
     ).all()
 
-    return [AreaRepetition(area=area, ascents=count) for area, count in result]
+    return [AreaAscent(area=area, ascents=count) for area, count in result]
 
 
 def get_grade_distribution(db: Session):
@@ -155,7 +157,7 @@ def get_style_distribution(db: Session):
     ).all()
 
     return [
-        StyleDistribution(style=style, boulder_count=boulder_count)
+        StyleDistribution(style=style, boulders=boulder_count)
         for style, boulder_count in result
     ]
 
@@ -346,8 +348,8 @@ def get_ascents_per_grade(db: Session):
     result = db.execute(
         select(Grade, func.count(Repetition.boulder_id))
         .join(Boulder, Boulder.grade_id == Grade.id)
-        .join(Repetition, Boulder.id == Repetition.user_id)
-        .group_by(Grade.id)
+        .join(Repetition, Boulder.id == Repetition.boulder_id)
+        .group_by(Grade.value)
         .order_by(Grade.correspondence)
     ).all()
 

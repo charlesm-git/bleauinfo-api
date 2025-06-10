@@ -11,7 +11,7 @@ class Style(BaseModel):
 
 class StyleDistribution(BaseModel):
     style: str
-    boulder_count: int
+    boulders: int
 
     class Config:
         from_attributes = True
