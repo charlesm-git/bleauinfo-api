@@ -24,7 +24,7 @@ def get_user(db: Session, id: int):
     return db.scalar(select(User).where(User.id == id))
 
 
-def get_boulders_set_by(db: Session, user_id: int):
+def get_user_boulders_set(db: Session, user_id: int):
     return db.scalars(
         select(Boulder)
         .where(boulder_setter_table.c.user_id == user_id)
@@ -35,7 +35,7 @@ def get_boulders_set_by(db: Session, user_id: int):
     )
 
 
-def get_boulders_repeated_by(db: Session, user_id: int):
+def get_user_boulders_repeated(db: Session, user_id: int):
     return db.scalars(
         select(Boulder)
         .where(Repetition.user_id == user_id)
@@ -47,7 +47,7 @@ def get_username_from_id(db: Session, user_id: int):
     return db.scalar(select(User.username).where(User.id == user_id))
 
 
-def get_total_boulder_repeated(db: Session, user_id: int):
+def get_number_of_ascents(db: Session, user_id: int):
     return db.scalar(
         select(func.count(Repetition.boulder_id)).where(
             Repetition.user_id == user_id
@@ -55,7 +55,7 @@ def get_total_boulder_repeated(db: Session, user_id: int):
     )
 
 
-def get_average_grade(db: Session, user_id: int):
+def get_user_average_grade(db: Session, user_id: int):
     subquery = (
         select(func.avg(Grade.correspondence))
         .where(and_(Repetition.user_id == user_id, Grade.value.is_not("P")))
@@ -68,7 +68,7 @@ def get_average_grade(db: Session, user_id: int):
     )
 
 
-def get_hardest_grade(db: Session, user_id: int):
+def get_user_hardest_grade(db: Session, user_id: int):
     return db.scalar(
         select(Grade)
         .where(Repetition.user_id == user_id)
@@ -78,7 +78,7 @@ def get_hardest_grade(db: Session, user_id: int):
     )
 
 
-def get_grade_distribution(db: Session, user_id: int):
+def get_user_grade_distribution(db: Session, user_id: int):
     result = db.execute(
         select(Grade, func.count(Repetition.boulder_id))
         .where(Repetition.user_id == user_id)
@@ -93,7 +93,7 @@ def get_grade_distribution(db: Session, user_id: int):
     ]
 
 
-def get_area_distribution(db: Session, user_id: int):
+def get_user_area_distribution(db: Session, user_id: int):
     result = db.execute(
         select(
             Area,
@@ -110,15 +110,15 @@ def get_area_distribution(db: Session, user_id: int):
 
 def get_user_stats(db: Session, user_id: int):
     username = get_username_from_id(db, user_id)
-    total_boulder_repeated = get_total_boulder_repeated(db, user_id)
-    grade_distribution = get_grade_distribution(db, user_id)
-    average_grade = get_average_grade(db, user_id)
-    hardest_grade = get_hardest_grade(db, user_id)
-    area_distribution = get_area_distribution(db, user_id)
+    ascents = get_number_of_ascents(db, user_id)
+    grade_distribution = get_user_grade_distribution(db, user_id)
+    average_grade = get_user_average_grade(db, user_id)
+    hardest_grade = get_user_hardest_grade(db, user_id)
+    area_distribution = get_user_area_distribution(db, user_id)
 
     return UserStats(
         username=username,
-        total_boulders_repeated=total_boulder_repeated,
+        ascents=ascents,
         grade_distribution=grade_distribution,
         average_grade=average_grade,
         hardest_grade=hardest_grade,

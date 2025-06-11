@@ -19,7 +19,7 @@ class UserDetail(User):
 
 class UserStats(BaseModel):
     username: str
-    total_boulders_repeated: int
+    ascents: int
     average_grade: Grade
     hardest_grade: Grade
     grade_distribution: List[GradeAscents]

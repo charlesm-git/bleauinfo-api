@@ -4,18 +4,18 @@ from sqlalchemy.orm import Session
 
 from crud.areas import get_area_best_rated
 from crud.stats import (
-    get_best_rated_boulders,
-    get_most_ascents_boulders,
-    get_hardest_boulders,
-    get_grade_distribution,
-    get_boulders_rating_distribution,
-    get_ascents_per_month,
-    get_ascents_per_year,
-    get_repeats_volume_distribution,
-    get_style_distribution,
+    get_general_best_rated_boulders,
+    get_general_most_ascents_boulders,
+    get_general_hardest_boulders,
+    get_general_grade_distribution,
+    get_general_rating_distribution,
+    get_general_ascents_per_month,
+    get_general_ascents_per_year,
+    get_ascents_volume_distribution,
+    get_general_style_distribution,
     get_top_repeaters,
     get_top_setters,
-    get_ascents_per_grade,
+    get_general_ascents_per_grade,
 )
 from database import engine
 from models.area import Area

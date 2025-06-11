@@ -6,8 +6,8 @@ from database import get_db_session
 from crud.users import (
     get_all_users,
     get_user,
-    get_boulders_set_by,
-    get_boulders_repeated_by,
+    get_user_boulders_set,
+    get_user_boulders_repeated,
     get_user_stats,
 )
 from schemas.user import User, UserDetail, UserStats
@@ -39,7 +39,7 @@ def read_user(
 def read_boulders_set_by(
     id: int, db: Session = Depends(get_db_session)
 ) -> List[Boulder]:
-    boulders = get_boulders_set_by(db=db, user_id=id)
+    boulders = get_user_boulders_set(db=db, user_id=id)
     return boulders
 
 
@@ -47,7 +47,7 @@ def read_boulders_set_by(
 def read_boulders_repeated_by(
     id: int, db: Session = Depends(get_db_session)
 ) -> List[Boulder]:
-    boulders = get_boulders_repeated_by(db=db, user_id=id)
+    boulders = get_user_boulders_repeated(db=db, user_id=id)
     return boulders
 
 

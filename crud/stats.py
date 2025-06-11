@@ -25,7 +25,7 @@ from schemas.style import StyleDistribution
 from schemas.user import UserBoulderCount, UserRepetitionVolume
 
 
-def get_best_rated_boulders(db: Session, grade: str):
+def get_general_best_rated_boulders(db: Session, grade: str):
     result = db.scalars(
         select(Boulder)
         .where(
@@ -43,7 +43,7 @@ def get_best_rated_boulders(db: Session, grade: str):
     return result
 
 
-def get_most_ascents_boulders(db: Session, grade: str):
+def get_general_most_ascents_boulders(db: Session, grade: str):
     result = db.execute(
         select(
             Boulder,
@@ -71,7 +71,7 @@ def get_most_ascents_boulders(db: Session, grade: str):
     ]
 
 
-def get_hardest_boulders(db: Session, exclude_traverse: bool):
+def get_general_hardest_boulders(db: Session, exclude_traverse: bool):
     query = select(Boulder)
     if exclude_traverse:
         subquery_traverse = (
@@ -109,7 +109,7 @@ def get_hardest_boulders(db: Session, exclude_traverse: bool):
     return db.scalars(query).all()
 
 
-def get_boulders_rating_distribution(db: Session):
+def get_general_rating_distribution(db: Session):
     result = db.execute(
         select(Boulder.rating, func.count(Boulder.id))
         .group_by(Boulder.rating)
@@ -134,7 +134,7 @@ def get_most_ascents_areas(db: Session):
     return [AreaAscent(area=area, ascents=count) for area, count in result]
 
 
-def get_grade_distribution(db: Session):
+def get_general_grade_distribution(db: Session):
     result = db.execute(
         select(Grade, func.count(Boulder.id))
         .join(Boulder, Boulder.grade_id == Grade.id)
@@ -147,7 +147,7 @@ def get_grade_distribution(db: Session):
     ]
 
 
-def get_style_distribution(db: Session):
+def get_general_style_distribution(db: Session):
     result = db.execute(
         select(Style.style, func.count(Boulder.id).label("boulder_count"))
         .join(boulder_style_table, Style.id == boulder_style_table.c.style_id)
@@ -201,7 +201,7 @@ def get_top_setters(db: Session):
     ]
 
 
-def get_repeats_volume_distribution(db: Session):
+def get_ascents_volume_distribution(db: Session):
     # Subquery: count repetitions per user
     user_counts = (
         select(
@@ -237,7 +237,7 @@ def get_repeats_volume_distribution(db: Session):
     ]
 
 
-def get_ascents_per_month(db: Session, grade: str = None):
+def get_general_ascents_per_month(db: Session, grade: str = None):
     query_filter = []
     join_clause = Repetition
 
@@ -305,7 +305,7 @@ def get_ascents_per_month(db: Session, grade: str = None):
     ]
 
 
-def get_ascents_per_year(db: Session, grade: str = None):
+def get_general_ascents_per_year(db: Session, grade: str = None):
     query_filter = []
     join_clause = Repetition
 
@@ -344,7 +344,7 @@ def get_ascents_per_year(db: Session, grade: str = None):
     ]
 
 
-def get_ascents_per_grade(db: Session):
+def get_general_ascents_per_grade(db: Session):
     result = db.execute(
         select(Grade, func.count(Repetition.boulder_id))
         .join(Boulder, Boulder.grade_id == Grade.id)

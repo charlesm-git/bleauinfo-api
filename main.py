@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import boulders, areas, regions, users, stats
+from routers import boulders, areas, regions, users, stats, search
 
 app = FastAPI()
 
@@ -18,3 +18,4 @@ app.include_router(areas.router)
 app.include_router(regions.router)
 app.include_router(users.router)
 app.include_router(stats.router)
+app.include_router(search.router)

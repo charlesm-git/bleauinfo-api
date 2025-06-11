@@ -35,3 +35,8 @@ class AscentsPerYear(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class AscentDate(BaseModel):
+    date: int
+    ascents: int

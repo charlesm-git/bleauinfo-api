@@ -17,14 +17,14 @@ class Boulder(BaseModel):
 
 class BoulderDetail(Boulder):
     grade: "Grade"
-    slash_grade: "Grade"
+    slash_grade: Union["Grade", None] = None
     area: "Area"
     styles: List["Style"] = []
     repetitions: List["AscentRead"] = []
-
+    aggregated_ascents: List["AscentDate"]
+    
     class Config:
         from_attributes = True
-
 
 class BoulderGrade(Boulder):
     grade: "Grade"
@@ -64,5 +64,5 @@ class RatingCount(BaseModel):
 
 from schemas.area import Area
 from schemas.grade import Grade
-from schemas.ascent import AscentRead
+from schemas.ascent import AscentDate, AscentRead
 from schemas.style import Style

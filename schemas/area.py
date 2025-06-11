@@ -30,7 +30,7 @@ class AreaStats(BaseModel):
     area: "AreaDetail"
     number_of_boulders: int
     average_grade: Union["Grade", None]
-    total_number_of_repetition: int
+    ascents: int
     grade_distribution: List["GradeDistribution"]
     most_climbed_boulders: List["BoulderGradeAscent"]
     best_rated_boulders: List["BoulderGradeAscent"]
