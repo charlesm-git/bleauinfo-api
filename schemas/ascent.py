@@ -29,14 +29,18 @@ class AscentsPerMonth(BaseModel):
         from_attributes = True
 
 
+class AscentsPerMonthWithGeneral(BaseModel):
+    month: str
+    boulder: float
+    general: float
+
+    class Config:
+        from_attributes = True
+
+
 class AscentsPerYear(BaseModel):
     year: int
     ascents: int
 
     class Config:
         from_attributes = True
-
-
-class AscentDate(BaseModel):
-    date: int
-    ascents: int

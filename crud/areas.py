@@ -25,7 +25,7 @@ def get_boulders_from_area(db: Session, area_id: int):
 
 def get_area_stats(db: Session, area_id: int):
     area = get_area(db, area_id)
-    number_of_boulder = get_number_of_boulders(db, area_id)
+    number_of_boulder = get_area_number_of_boulders(db, area_id)
     grade_distribution = get_area_grade_distribution(db, area_id)
     most_climbed_boulders = get_area_most_climbed_boulders(db, area_id)
     average_grade = get_area_average_grade(db, area_id)
@@ -42,11 +42,11 @@ def get_area_stats(db: Session, area_id: int):
     )
 
 
-def get_name_from_id(db: Session, area_id: int):
+def get_area_name_from_id(db: Session, area_id: int):
     return db.scalar(select(Area.name).where(Area.id == area_id))
 
 
-def get_number_of_boulders(db: Session, area_id: int):
+def get_area_number_of_boulders(db: Session, area_id: int):
     return db.scalar(
         select(func.count(Boulder.id)).where(Boulder.area_id == area_id)
     )

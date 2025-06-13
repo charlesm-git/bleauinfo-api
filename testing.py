@@ -27,4 +27,6 @@ from models.user import User
 
 if __name__ == "__main__":
     session = Session(engine)
-    print(get_area_best_rated(session, 1))
+    result = get_general_most_ascents_boulders(session, '7a')
+    for item in result:
+        print(item)

@@ -21,10 +21,11 @@ class BoulderDetail(Boulder):
     area: "Area"
     styles: List["Style"] = []
     repetitions: List["AscentRead"] = []
-    aggregated_ascents: List["AscentDate"]
-    
+    aggregated_ascents: List["AscentsPerMonthWithGeneral"]
+
     class Config:
         from_attributes = True
+
 
 class BoulderGrade(Boulder):
     grade: "Grade"
@@ -41,16 +42,16 @@ class BoulderGradeArea(Boulder):
     area: Area
 
 
-class BoulderGradeAreaAscent(BaseModel):
-    boulder: BoulderGradeArea
+class BoulderGradeAscent(BaseModel):
+    boulder: BoulderGrade
     ascents: int
 
     class Config:
         from_attributes = True
 
 
-class BoulderGradeAscent(BaseModel):
-    boulder: BoulderGrade
+class BoulderAreaAscent(BaseModel):
+    boulder: BoulderArea
     ascents: int
 
     class Config:
@@ -64,5 +65,5 @@ class RatingCount(BaseModel):
 
 from schemas.area import Area
 from schemas.grade import Grade
-from schemas.ascent import AscentDate, AscentRead
+from schemas.ascent import AscentRead, AscentsPerMonth, AscentsPerMonthWithGeneral
 from schemas.style import Style

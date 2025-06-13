@@ -1,11 +1,12 @@
-from sqlalchemy import and_, select, func
+from sqlalchemy import select, func, cast, Float, text
 from sqlalchemy.orm import Session, joinedload
+from crud.stats import get_general_ascents_per_month
 from models.boulder_style import boulder_style_table
 from models.boulder import Boulder
 from models.repetition import Repetition
 from models.style import Style
 from schemas.boulder import BoulderDetail
-from schemas.ascent import AscentDate
+from schemas.ascent import AscentsPerMonth, AscentsPerMonthWithGeneral
 
 
 def get_all_boulders(db: Session, skip: int = 0, limit: int = 20, style=None):
@@ -35,19 +36,78 @@ def get_boulder(db: Session, id: int):
             joinedload(Boulder.repetitions).joinedload(Repetition.user),
         )
     )
+
+    # Total ascents for percentage calculation
+    boulder_total_repeats = (
+        select(func.count(Repetition.user_id))
+        .where(Repetition.boulder_id == boulder.id)
+        .scalar_subquery()
+    )
+    total_ascents = select(func.count(Repetition.boulder_id)).scalar_subquery()
+
+    # Monthly ascent distribution
     aggregated_ascents = db.execute(
         select(
             func.extract("month", Repetition.log_date).label("month"),
-            func.count(Repetition.user_id),
+            func.round(
+                (
+                    func.count(Repetition.user_id)
+                    * 100
+                    / cast(boulder_total_repeats, Float)
+                ),
+                1,
+            ).label("boulder"),
         )
+        .select_from(Repetition)
         .where(Repetition.boulder_id == boulder.id)
         .group_by("month")
         .order_by("month")
     ).all()
 
+    general_month_distribution = db.scalars(
+        select(
+            func.round(
+                (
+                    func.count(Repetition.user_id)
+                    * 100
+                    / cast(total_ascents, Float)
+                ),
+                1,
+            ).label("general"),
+        )
+        .group_by(func.extract("month", Repetition.log_date))
+        .order_by(func.extract("month", Repetition.log_date))
+    ).all()
+
+    months_with_ascents = {item[0] for item in aggregated_ascents}
+
+    for month in range(1, 13):
+        if month not in months_with_ascents:
+            aggregated_ascents.append((month, 0))
+    aggregated_ascents = sorted(aggregated_ascents, key=lambda x: x[0])
+
+    month_list = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+    ]
+
     aggregated_ascents = [
-        AscentDate(date=date, ascents=ascents)
-        for date, ascents in aggregated_ascents
+        AscentsPerMonthWithGeneral(
+            month=month_list[month],
+            boulder=aggregated_ascents[month][1],
+            general=general_month_distribution[month],
+        )
+        for month in range(12)
     ]
 
     return BoulderDetail(
