@@ -65,5 +65,5 @@ class RatingCount(BaseModel):
 
 from schemas.area import Area
 from schemas.grade import Grade
-from schemas.ascent import AscentRead, AscentsPerMonth, AscentsPerMonthWithGeneral
+from schemas.ascent import AscentRead, AscentsPerMonthWithGeneral
 from schemas.style import Style

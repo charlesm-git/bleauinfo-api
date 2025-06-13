@@ -1,12 +1,11 @@
-from sqlalchemy import select, func, cast, Float, text
+from sqlalchemy import select, func, cast, Float, case
 from sqlalchemy.orm import Session, joinedload
-from crud.stats import get_general_ascents_per_month
 from models.boulder_style import boulder_style_table
 from models.boulder import Boulder
 from models.repetition import Repetition
 from models.style import Style
 from schemas.boulder import BoulderDetail
-from schemas.ascent import AscentsPerMonth, AscentsPerMonthWithGeneral
+from schemas.ascent import AscentsPerMonthWithGeneral
 
 
 def get_all_boulders(db: Session, skip: int = 0, limit: int = 20, style=None):
@@ -51,21 +50,12 @@ def get_boulder(db: Session, id: int):
             func.extract("month", Repetition.log_date).label("month"),
             func.round(
                 (
-                    func.count(Repetition.user_id)
+                    func.count(case((Repetition.boulder_id == boulder.id, 1)))
                     * 100
                     / cast(boulder_total_repeats, Float)
                 ),
                 1,
             ).label("boulder"),
-        )
-        .select_from(Repetition)
-        .where(Repetition.boulder_id == boulder.id)
-        .group_by("month")
-        .order_by("month")
-    ).all()
-
-    general_month_distribution = db.scalars(
-        select(
             func.round(
                 (
                     func.count(Repetition.user_id)
@@ -75,16 +65,9 @@ def get_boulder(db: Session, id: int):
                 1,
             ).label("general"),
         )
-        .group_by(func.extract("month", Repetition.log_date))
-        .order_by(func.extract("month", Repetition.log_date))
-    ).all()
-
-    months_with_ascents = {item[0] for item in aggregated_ascents}
-
-    for month in range(1, 13):
-        if month not in months_with_ascents:
-            aggregated_ascents.append((month, 0))
-    aggregated_ascents = sorted(aggregated_ascents, key=lambda x: x[0])
+        .group_by("month")
+        .order_by("month")
+    ).mappings().all()
 
     month_list = [
         "Jan",
@@ -104,8 +87,8 @@ def get_boulder(db: Session, id: int):
     aggregated_ascents = [
         AscentsPerMonthWithGeneral(
             month=month_list[month],
-            boulder=aggregated_ascents[month][1],
-            general=general_month_distribution[month],
+            boulder=aggregated_ascents[month]["boulder"],
+            general=aggregated_ascents[month]["general"],
         )
         for month in range(12)
     ]
