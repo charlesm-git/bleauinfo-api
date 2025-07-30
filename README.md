@@ -37,17 +37,20 @@ All endpoints are `GET` requests.
 - `/users/{id}/boulders/repeats`: List of boulders repeated by the user  
 - `/users/{id}/stats`: User stats (total repeats, grade distribution, average grade, hardest climb, most climbed area, etc.)
 
+### 🔍 Search
+- `/{test}`: Search Boulders and Areas matching the `text`
+
 ### 📊 Statistics
 
 #### Boulders
-- `/stats/boulders/top-rated?grade=...`: Top 10 rated boulders for a specific grade  
-- `/stats/boulders/most-repeated`: Top 10 most repeated boulders  
+- `/stats/boulders/top-rated/{grade}`: Top 10 rated boulders for a specific grade  
+- `/stats/boulders/most-ascents/{grade}`: Top 10 most repeated boulders  
 - `/stats/boulders/hardest`: Boulders graded 8c and above  
 - `/stats/boulders/styles/distribution`: Count of boulders per style  
 - `/stats/boulders/ratings/distribution`: Count of boulders per rating
 
 #### Areas
-- `/stats/areas/most-repeated`: Top 10 areas with most repeats
+- `/stats/areas/most-ascents`: Top 10 areas with most repeats
 
 #### Grades
 - `/stats/grades/distribution`: Number of boulders per grade
@@ -58,5 +61,6 @@ All endpoints are `GET` requests.
 - `/stats/users/repeat-volume`: Histogram of users by repeat volume
 
 #### Repeats
-- `/stats/repeats/per-month`: Monthly repeat percentage distribution  
-- `/stats/repeats/per-year`: Total number of repeats per year
+- `/stats/ascents/per-month`: Monthly ascents percentage distribution  
+- `/stats/ascents/per-year`: Total number of ascents per year
+- `/stats/ascents/per-grade`: Total number of ascents per grade
