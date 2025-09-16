@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 
 from crud.areas import get_area_best_rated
+from crud.recommendation import get_recommended_boulder
 from crud.stats import (
     get_general_best_rated_boulders,
     get_general_most_ascents_boulders,
@@ -27,6 +28,5 @@ from models.user import User
 
 if __name__ == "__main__":
     session = Session(engine)
-    result = get_general_most_ascents_boulders(session, '7a')
-    for item in result:
-        print(item)
+    result = get_recommended_boulder(db=session, boulder_ids=[5, 4, 2])
+    print(result)
