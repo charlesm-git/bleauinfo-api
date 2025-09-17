@@ -2,7 +2,7 @@ from sqlalchemy import select, func, cast, Float, case
 from sqlalchemy.orm import Session, joinedload
 from models.boulder_style import boulder_style_table
 from models.boulder import Boulder
-from models.repetition import Repetition
+from models.ascent import Ascent
 from models.style import Style
 from schemas.boulder import BoulderDetail
 from schemas.ascent import AscentsPerMonthWithGeneral
@@ -31,26 +31,26 @@ def get_boulder(db: Session, id: int):
             joinedload(Boulder.slash_grade),
             joinedload(Boulder.area),
             joinedload(Boulder.styles),
-            joinedload(Boulder.repetitions),
-            joinedload(Boulder.repetitions).joinedload(Repetition.user),
+            joinedload(Boulder.ascents),
+            joinedload(Boulder.ascents).joinedload(Ascent.user),
         )
     )
 
     # Total ascents for percentage calculation
     boulder_total_repeats = (
-        select(func.count(Repetition.user_id))
-        .where(Repetition.boulder_id == boulder.id)
+        select(func.count(Ascent.user_id))
+        .where(Ascent.boulder_id == boulder.id)
         .scalar_subquery()
     )
-    total_ascents = select(func.count(Repetition.boulder_id)).scalar_subquery()
+    total_ascents = select(func.count(Ascent.boulder_id)).scalar_subquery()
 
     # Monthly ascent distribution
     aggregated_ascents = db.execute(
         select(
-            func.extract("month", Repetition.log_date).label("month"),
+            func.extract("month", Ascent.log_date).label("month"),
             func.round(
                 (
-                    func.count(case((Repetition.boulder_id == boulder.id, 1)))
+                    func.count(case((Ascent.boulder_id == boulder.id, 1)))
                     * 100
                     / cast(boulder_total_repeats, Float)
                 ),
@@ -58,7 +58,7 @@ def get_boulder(db: Session, id: int):
             ).label("boulder"),
             func.round(
                 (
-                    func.count(Repetition.user_id)
+                    func.count(Ascent.user_id)
                     * 100
                     / cast(total_ascents, Float)
                 ),
@@ -103,6 +103,6 @@ def get_boulder(db: Session, id: int):
         slash_grade=boulder.slash_grade,
         area=boulder.area,
         styles=boulder.styles,
-        repetitions=boulder.repetitions,
+        ascents=boulder.ascents,
         aggregated_ascents=aggregated_ascents,
     )

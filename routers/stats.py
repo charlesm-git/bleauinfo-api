@@ -27,7 +27,7 @@ from schemas.boulder import (
 from schemas.grade import GradeDistribution, GradeAscents
 from schemas.ascent import AscentsPerMonth, AscentsPerYear
 from schemas.style import StyleDistribution
-from schemas.user import UserBoulderCount, UserRepetitionVolume
+from schemas.user import UserBoulderCount, UserAscentVolume
 
 router = APIRouter(prefix="/stats", tags=["stats"])
 
@@ -113,7 +113,7 @@ def read_top_setters(
 @router.get("/users/repeats-volume")
 def read_ascents_volume_distribution(
     db: Session = Depends(get_db_session),
-) -> List[UserRepetitionVolume]:
+) -> List[UserAscentVolume]:
     boulders = get_ascents_volume_distribution(db=db)
     return boulders
 

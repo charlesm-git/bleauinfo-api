@@ -20,7 +20,7 @@ class BoulderDetail(Boulder):
     slash_grade: Union["Grade", None] = None
     area: "Area"
     styles: List["Style"] = []
-    repetitions: List["AscentRead"] = []
+    ascents: List["AscentRead"] = []
     aggregated_ascents: List["AscentsPerMonthWithGeneral"]
 
     class Config:

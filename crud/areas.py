@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session, joinedload, outerjoin
 from models.area import Area
 from models.boulder import Boulder
 from models.grade import Grade
-from models.repetition import Repetition
+from models.ascent import Ascent
 from schemas.area import AreaStats
 from schemas.boulder import BoulderGradeAscent
 from schemas.grade import GradeDistribution
@@ -75,13 +75,13 @@ def get_area_most_climbed_boulders(db: Session, area_id: int, limit: int = 10):
     result = db.execute(
         select(
             Boulder,
-            func.count(Repetition.user_id).label("ascents"),
+            func.count(Ascent.user_id).label("ascents"),
         )
         .where(Boulder.area_id == area_id)
         .options(joinedload(Boulder.grade), joinedload(Boulder.slash_grade))
         .order_by(desc("ascents"))
-        .join(Repetition, Boulder.id == Repetition.boulder_id)
-        .group_by(Repetition.boulder_id)
+        .join(Ascent, Boulder.id == Ascent.boulder_id)
+        .group_by(Ascent.boulder_id)
         .limit(limit)
     ).all()
 
@@ -109,15 +109,15 @@ def get_area_average_grade(db: Session, area_id: int):
 
 def get_area_total_ascents(db: Session, area_id: int):
     return db.scalar(
-        select(func.count(Repetition.user_id))
+        select(func.count(Ascent.user_id))
         .where(Boulder.area_id == area_id)
-        .join(Boulder, Boulder.id == Repetition.boulder_id)
+        .join(Boulder, Boulder.id == Ascent.boulder_id)
     )
 
 
 def get_area_best_rated(db: Session, area_id: int):
     result = db.execute(
-        select(Boulder, func.count(Repetition.user_id).label("ascents"))
+        select(Boulder, func.count(Ascent.user_id).label("ascents"))
         .filter(
             and_(
                 Boulder.area_id == area_id,
@@ -126,7 +126,7 @@ def get_area_best_rated(db: Session, area_id: int):
             )
         )
         .options(joinedload(Boulder.grade), joinedload(Boulder.slash_grade))
-        .join(Repetition, Boulder.id == Repetition.boulder_id)
+        .join(Ascent, Boulder.id == Ascent.boulder_id)
         .group_by(Boulder.id)
         .order_by(desc(Boulder.rating))
     ).all()

@@ -14,7 +14,7 @@ from models.boulder import Boulder
 from models.boulder_style import boulder_style_table
 from models.boulder_setter import boulder_setter_table
 from models.grade import Grade
-from models.repetition import Repetition
+from models.ascent import Ascent
 from models.style import Style
 from models.user import User
 from schemas.area import AreaAscent
@@ -25,12 +25,12 @@ from schemas.boulder import (
 from schemas.grade import GradeDistribution, GradeAscents
 from schemas.ascent import AscentsPerMonth, AscentsPerYear
 from schemas.style import StyleDistribution
-from schemas.user import UserBoulderCount, UserRepetitionVolume
+from schemas.user import UserBoulderCount, UserAscentVolume
 
 
 def get_general_best_rated_boulders(db: Session, grade: str):
     result = db.execute(
-        select(Boulder, func.count(Repetition.user_id).label("ascents"))
+        select(Boulder, func.count(Ascent.user_id).label("ascents"))
         .where(
             and_(
                 Grade.value == grade,
@@ -39,7 +39,7 @@ def get_general_best_rated_boulders(db: Session, grade: str):
             )
         )
         .join(Grade, Boulder.grade_id == Grade.id)
-        .join(Repetition, Repetition.boulder_id == Boulder.id)
+        .join(Ascent, Ascent.boulder_id == Boulder.id)
         .options(joinedload(Boulder.area))
         .group_by(Boulder.id)
         .order_by(desc(Boulder.rating))
@@ -56,14 +56,14 @@ def get_general_best_rated_boulders(db: Session, grade: str):
 
 def get_general_most_ascents_boulders(db: Session, grade: str):
     result = db.execute(
-        select(Boulder, func.count(Repetition.user_id).label("ascents"))
-        .join(Boulder.repetitions)
+        select(Boulder, func.count(Ascent.user_id).label("ascents"))
+        .join(Boulder.ascents)
         .join(Boulder.grade)
         .options(
             joinedload(Boulder.area),
         )
         .where(Grade.value == grade)
-        .group_by(Repetition.boulder_id)
+        .group_by(Ascent.boulder_id)
         .order_by(desc("ascents"))
         .limit(10)
     ).all()
@@ -129,11 +129,11 @@ def get_general_rating_distribution(db: Session):
 
 def get_most_ascents_areas(db: Session):
     result = db.execute(
-        select(Area, func.count(Repetition.user_id).label("repetition_count"))
+        select(Area, func.count(Ascent.user_id).label("ascents_count"))
         .join(Boulder, Boulder.area_id == Area.id)
-        .join(Repetition, Repetition.boulder_id == Boulder.id)
+        .join(Ascent, Ascent.boulder_id == Boulder.id)
         .group_by(Area.id)
-        .order_by(desc("repetition_count"))
+        .order_by(desc("ascents_count"))
         .limit(10)
     ).all()
 
@@ -170,8 +170,8 @@ def get_general_style_distribution(db: Session):
 
 def get_top_repeaters(db: Session):
     result = db.execute(
-        select(User, func.count(Repetition.boulder_id).label("boulder_count"))
-        .join(Repetition, User.id == Repetition.user_id)
+        select(User, func.count(Ascent.boulder_id).label("boulder_count"))
+        .join(Ascent, User.id == Ascent.user_id)
         .group_by(User.id)
         .order_by(desc("boulder_count"))
         .limit(20)
@@ -208,17 +208,17 @@ def get_top_setters(db: Session):
 
 
 def get_ascents_volume_distribution(db: Session):
-    # Subquery: count repetitions per user
+    # Subquery: count ascents per user
     user_counts = (
         select(
-            Repetition.user_id,
-            func.count(Repetition.boulder_id).label("repeat_count"),
+            Ascent.user_id,
+            func.count(Ascent.boulder_id).label("repeat_count"),
         )
-        .group_by(Repetition.user_id)
+        .group_by(Ascent.user_id)
         .subquery()
     )
 
-    # Categorize users by repetition count
+    # Categorize users by ascent count
     category_case = case(
         (user_counts.c.repeat_count < 20, "1–19"),
         (user_counts.c.repeat_count < 50, "20–49"),
@@ -238,14 +238,14 @@ def get_ascents_volume_distribution(db: Session):
     ).all()
 
     return [
-        UserRepetitionVolume(group=group, number_of_users=count)
+        UserAscentVolume(group=group, number_of_users=count)
         for group, count in results
     ]
 
 
 def get_general_ascents_per_month(db: Session, grade: str = None):
     query_filter = []
-    join_clause = Repetition
+    join_clause = Ascent
 
     if grade:
         grade_subquery = (
@@ -256,22 +256,22 @@ def get_general_ascents_per_month(db: Session, grade: str = None):
 
         query_filter.append(Grade.correspondence >= grade_subquery)
 
-        join_clause = Repetition.__table__.join(
-            Boulder, Repetition.boulder_id == Boulder.id
+        join_clause = Ascent.__table__.join(
+            Boulder, Ascent.boulder_id == Boulder.id
         ).join(Grade, Boulder.grade_id == Grade.id)
 
     total_repeats = (
-        select(func.count(Repetition.user_id))
+        select(func.count(Ascent.user_id))
         .select_from(join_clause)
         .where(*query_filter)
         .scalar_subquery()
     )
     main_query = (
         select(
-            func.extract("month", Repetition.log_date).label("month"),
+            func.extract("month", Ascent.log_date).label("month"),
             func.round(
                 (
-                    func.count(Repetition.user_id)
+                    func.count(Ascent.user_id)
                     * 100
                     / cast(total_repeats, Float)
                 ),
@@ -313,7 +313,7 @@ def get_general_ascents_per_month(db: Session, grade: str = None):
 
 def get_general_ascents_per_year(db: Session, grade: str = None):
     query_filter = []
-    join_clause = Repetition
+    join_clause = Ascent
 
     if grade:
         grade_subquery = (
@@ -324,20 +324,20 @@ def get_general_ascents_per_year(db: Session, grade: str = None):
 
         query_filter.append(Grade.correspondence >= grade_subquery)
 
-        join_clause = Repetition.__table__.join(
-            Boulder, Repetition.boulder_id == Boulder.id
+        join_clause = Ascent.__table__.join(
+            Boulder, Ascent.boulder_id == Boulder.id
         ).join(Grade, Boulder.grade_id == Grade.id)
 
     main_query = (
         select(
-            func.extract("year", Repetition.log_date).label("year"),
-            func.count(Repetition.user_id),
+            func.extract("year", Ascent.log_date).label("year"),
+            func.count(Ascent.user_id),
         )
         .select_from(join_clause)
         .where(
             and_(
                 *query_filter,
-                func.extract("year", Repetition.log_date) >= 1995
+                func.extract("year", Ascent.log_date) >= 1995
             )
         )
         .group_by("year")
@@ -345,16 +345,16 @@ def get_general_ascents_per_year(db: Session, grade: str = None):
     )
     result = db.execute(main_query).all()
     return [
-        AscentsPerYear(year=year, ascents=number_of_repetition)
-        for year, number_of_repetition in result
+        AscentsPerYear(year=year, ascents=number_of_ascents)
+        for year, number_of_ascents in result
     ]
 
 
 def get_general_ascents_per_grade(db: Session):
     result = db.execute(
-        select(Grade, func.count(Repetition.boulder_id))
+        select(Grade, func.count(Ascent.boulder_id))
         .join(Boulder, Boulder.grade_id == Grade.id)
-        .join(Repetition, Boulder.id == Repetition.boulder_id)
+        .join(Ascent, Boulder.id == Ascent.boulder_id)
         .group_by(Grade.value)
         .order_by(Grade.correspondence)
     ).all()

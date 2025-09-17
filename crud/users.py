@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from models.area import Area
 from models.boulder import Boulder
 from models.grade import Grade
-from models.repetition import Repetition
+from models.ascent import Ascent
 from models.user import User
 from models.boulder_setter import boulder_setter_table
 from schemas.area import AreaAscent
@@ -38,8 +38,8 @@ def get_user_boulders_set(db: Session, user_id: int):
 def get_user_boulders_repeated(db: Session, user_id: int):
     return db.scalars(
         select(Boulder)
-        .where(Repetition.user_id == user_id)
-        .join(Repetition, Boulder.id == Repetition.boulder_id)
+        .where(Ascent.user_id == user_id)
+        .join(Ascent, Boulder.id == Ascent.boulder_id)
     )
 
 
@@ -49,8 +49,8 @@ def get_username_from_id(db: Session, user_id: int):
 
 def get_number_of_ascents(db: Session, user_id: int):
     return db.scalar(
-        select(func.count(Repetition.boulder_id)).where(
-            Repetition.user_id == user_id
+        select(func.count(Ascent.boulder_id)).where(
+            Ascent.user_id == user_id
         )
     )
 
@@ -58,9 +58,9 @@ def get_number_of_ascents(db: Session, user_id: int):
 def get_user_average_grade(db: Session, user_id: int):
     subquery = (
         select(func.avg(Grade.correspondence))
-        .where(and_(Repetition.user_id == user_id, Grade.value.is_not("P")))
+        .where(and_(Ascent.user_id == user_id, Grade.value.is_not("P")))
         .join(Boulder, Boulder.grade_id == Grade.id)
-        .join(Repetition, Repetition.boulder_id == Boulder.id)
+        .join(Ascent, Ascent.boulder_id == Boulder.id)
     ).scalar_subquery()
 
     return db.scalar(
@@ -71,19 +71,19 @@ def get_user_average_grade(db: Session, user_id: int):
 def get_user_hardest_grade(db: Session, user_id: int):
     return db.scalar(
         select(Grade)
-        .where(Repetition.user_id == user_id)
+        .where(Ascent.user_id == user_id)
         .join(Boulder, Boulder.grade_id == Grade.id)
-        .join(Repetition, Repetition.boulder_id == Boulder.id)
+        .join(Ascent, Ascent.boulder_id == Boulder.id)
         .order_by(desc(Grade.correspondence))
     )
 
 
 def get_user_grade_distribution(db: Session, user_id: int):
     result = db.execute(
-        select(Grade, func.count(Repetition.boulder_id))
-        .where(Repetition.user_id == user_id)
+        select(Grade, func.count(Ascent.boulder_id))
+        .where(Ascent.user_id == user_id)
         .join(Boulder, Boulder.grade_id == Grade.id)
-        .join(Repetition, Repetition.boulder_id == Boulder.id)
+        .join(Ascent, Ascent.boulder_id == Boulder.id)
         .group_by(Grade.value)
         .order_by(desc(Grade.correspondence)),
     ).all()
@@ -97,13 +97,13 @@ def get_user_area_distribution(db: Session, user_id: int):
     result = db.execute(
         select(
             Area,
-            func.count(Repetition.boulder_id).label("number_of_repetitions"),
+            func.count(Ascent.boulder_id).label("number_of_ascents"),
         )
-        .where(Repetition.user_id == user_id)
+        .where(Ascent.user_id == user_id)
         .join(Boulder, Boulder.area_id == Area.id)
-        .join(Repetition, Repetition.boulder_id == Boulder.id)
+        .join(Ascent, Ascent.boulder_id == Boulder.id)
         .group_by(Area)
-        .order_by(desc("number_of_repetitions"))
+        .order_by(desc("number_of_ascents"))
     ).all()
     return [AreaAscent(area=area, ascents=count) for area, count in result]
 

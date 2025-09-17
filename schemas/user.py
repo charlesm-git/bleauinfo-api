@@ -33,7 +33,7 @@ class UserBoulderCount(User):
     boulder_count: int
 
 
-class UserRepetitionVolume(BaseModel):
+class UserAscentVolume(BaseModel):
     group: str
     number_of_users: int
 
