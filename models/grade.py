@@ -1,7 +1,7 @@
 from typing import List
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Integer, SmallInteger, String
+from sqlalchemy import Integer, SmallInteger, String, select
 
 from models.base import Base
 import models.boulder
@@ -27,3 +27,7 @@ class Grade(Base):
 
     def __repr__(self):
         return f"<Grade : {self.value}, {self.correspondence}>"
+
+    @classmethod
+    def get_id_from_value(cls, db, grade_value):
+        return db.scalar(select(cls.id).where(cls.value == grade_value))

@@ -6,8 +6,7 @@ from sqlalchemy import Integer, String
 from models.base import Base
 from models.boulder_setter import boulder_setter_table
 import models.boulder
-import models.repetition
-
+import models.ascent
 
 class User(Base):
     __tablename__ = "user"
@@ -16,14 +15,15 @@ class User(Base):
         Integer, primary_key=True, autoincrement=True
     )
     username: Mapped[str] = mapped_column(String)
+    username_normalized: Mapped[str] = mapped_column
     url: Mapped[str] = mapped_column(String, unique=True)
 
     # Relationship
     set_boulders: Mapped[List["models.boulder.Boulder"]] = relationship(
         secondary=boulder_setter_table, back_populates="setters"
     )
-    repetitions: Mapped[List["models.repetition.Repetition"]] = relationship(
-        "Repetition", back_populates="user"
+    ascents: Mapped[List["models.ascent.Ascent"]] = relationship(
+        "Ascent", back_populates="user"
     )
 
     def __repr__(self):

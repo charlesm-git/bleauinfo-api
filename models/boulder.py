@@ -10,7 +10,7 @@ import models.grade
 import models.area
 import models.style
 import models.user
-import models.repetition
+import models.ascent
 
 
 class Boulder(Base):
@@ -20,6 +20,7 @@ class Boulder(Base):
         Integer, primary_key=True, autoincrement=True
     )
     name: Mapped[str] = mapped_column(String)
+    name_normalized: Mapped[str] = mapped_column(String)
     grade_id: Mapped[int] = mapped_column(ForeignKey("grade.id"))
     slash_grade_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("grade.id"), nullable=True, default=None
@@ -48,10 +49,10 @@ class Boulder(Base):
         secondary=boulder_setter_table, back_populates="set_boulders"
     )
 
-    # Association object for repetitions
-    repetitions: Mapped[List["models.repetition.Repetition"]] = relationship(
-        "Repetition", back_populates="boulder"
+    # Association object for ascents
+    ascents: Mapped[List["models.ascent.Ascent"]] = relationship(
+        "Ascent", back_populates="boulder"
     )
 
     def __repr__(self):
-        return f"<Boulder(name: {self.name}, grade: {self.grade.value}>"
+        return f"<Boulder(name: {self.name}, grade: {self.grade.value}, setters: {self.setters}, Ascents: {self.ascents})"

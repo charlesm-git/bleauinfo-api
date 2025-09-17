@@ -14,6 +14,7 @@ class Region(Base):
         Integer, primary_key=True, autoincrement=True
     )
     name: Mapped[str] = mapped_column(String)
+    name_normalized: Mapped[str] = mapped_column(String)
 
     # Relationship
     areas: Mapped[List["models.area.Area"]] = relationship(
