@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from scipy.sparse import load_npz
 
 
-db_path = "bleau_info.db"
+db_path = "bleau_info-17-09-2025.db"
 
 DATABASE_URL = f"sqlite:///{db_path}"
 engine = create_engine(DATABASE_URL, echo=False)
