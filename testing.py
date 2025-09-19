@@ -6,7 +6,8 @@ from crud.areas import get_area_best_rated
 from crud.recommendation import get_recommended_boulder
 from crud.stats import (
     get_general_best_rated_boulders,
-    get_general_most_ascents_boulders,
+    get_general_best_rated_boulders_per_grade,
+    get_general_most_ascents_boulders_per_grade,
     get_general_hardest_boulders,
     get_general_grade_distribution,
     get_general_rating_distribution,
@@ -19,14 +20,11 @@ from crud.stats import (
     get_general_ascents_per_grade,
 )
 from database import engine
-from models.area import Area
-from models.boulder import Boulder
-from models.grade import Grade
-from models.repetition import Repetition
-from models.boulder_setter import boulder_setter_table
-from models.user import User
+
 
 if __name__ == "__main__":
     session = Session(engine)
-    result = get_recommended_boulder(db=session, boulder_ids=[5, 4, 2])
-    print(result)
+    result = get_general_best_rated_boulders(db=session)
+    for boulder in result:
+        print(boulder)
+    print(len(result))

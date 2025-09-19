@@ -32,8 +32,12 @@ class BoulderGrade(Boulder):
     slash_grade: Union["Grade", None] = None
 
 
-class BoulderArea(Boulder):
+class BoulderAreaGradeStyleAscent(Boulder):
     area: "Area"
+    grade: "Grade"
+    slash_grade: Union["Grade", None] = None
+    styles: List["Style"] = []
+    ascents: int
 
 
 class BoulderGradeArea(Boulder):
@@ -50,17 +54,14 @@ class BoulderGradeAscent(BaseModel):
         from_attributes = True
 
 
-class BoulderAreaAscent(BaseModel):
-    boulder: BoulderArea
-    ascents: int
-
-    class Config:
-        from_attributes = True
-
-
 class RatingCount(BaseModel):
     rating: float | None
     count: int
+
+
+class BoulderByGrade(BaseModel):
+    grade: "Grade"
+    boulders: List["BoulderAreaGradeStyleAscent"]
 
 
 from schemas.area import Area

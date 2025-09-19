@@ -19,7 +19,8 @@ from models.style import Style
 from models.user import User
 from schemas.area import AreaAscent
 from schemas.boulder import (
-    BoulderAreaAscent,
+    BoulderAreaGradeStyleAscent,
+    BoulderByGrade,
     RatingCount,
 )
 from schemas.grade import GradeDistribution, GradeAscents
@@ -28,33 +29,105 @@ from schemas.style import StyleDistribution
 from schemas.user import UserBoulderCount, UserAscentVolume
 
 
-def get_general_best_rated_boulders(db: Session, grade: str):
-    result = db.execute(
-        select(Boulder, func.count(Ascent.user_id).label("ascents"))
-        .where(
-            and_(
-                Grade.value == grade,
-                Boulder.number_of_rating >= 10,
-                Boulder.rating >= 4.7,
+def get_general_best_rated_boulders_per_grade(db: Session, grade: str):
+    result = (
+        db.execute(
+            select(Boulder, func.count(Ascent.user_id).label("ascents"))
+            .where(
+                and_(
+                    Grade.value == grade,
+                    Boulder.number_of_rating >= 10,
+                    Boulder.rating >= 4.6,
+                )
             )
+            .join(Grade, Boulder.grade_id == Grade.id)
+            .join(Ascent, Ascent.boulder_id == Boulder.id)
+            .options(joinedload(Boulder.area), joinedload(Boulder.styles))
+            .group_by(Boulder.id)
+            .order_by(desc(Boulder.rating))
         )
-        .join(Grade, Boulder.grade_id == Grade.id)
-        .join(Ascent, Ascent.boulder_id == Boulder.id)
-        .options(joinedload(Boulder.area))
-        .group_by(Boulder.id)
-        .order_by(desc(Boulder.rating))
-    ).all()
+        .unique()
+        .all()
+    )
 
     return [
-        BoulderAreaAscent(
-            boulder=boulder,
+        BoulderAreaGradeStyleAscent(
+            id=boulder.id,
+            name=boulder.name,
+            rating=boulder.rating,
+            number_of_rating=boulder.number_of_rating,
+            url=boulder.url,
+            area=boulder.area,
+            styles=boulder.styles,
             ascents=ascents,
         )
         for boulder, ascents in result
     ]
 
 
-def get_general_most_ascents_boulders(db: Session, grade: str):
+def get_general_best_rated_boulders(db: Session):
+    grades = db.scalars(
+        select(Grade)
+        .join(Boulder, Boulder.grade_id == Grade.id)
+        .where(
+            and_(
+                Boulder.number_of_rating >= 10,
+                Boulder.rating >= 4.6,
+            )
+        )
+        .group_by(Grade.id)
+        .order_by(desc(Grade.correspondence))
+    ).all()
+
+    result = []
+
+    for grade in grades:
+        boulder_result = (
+            db.execute(
+                select(Boulder, func.count(Ascent.user_id).label("ascents"))
+                .where(
+                    and_(
+                        Grade.id == grade.id,
+                        Boulder.number_of_rating >= 10,
+                        Boulder.rating >= 4.6,
+                    )
+                )
+                .join(Grade, Boulder.grade_id == Grade.id)
+                .join(Ascent, Ascent.boulder_id == Boulder.id)
+                .options(
+                    joinedload(Boulder.area),
+                    joinedload(Boulder.styles),
+                    joinedload(Boulder.grade),
+                    joinedload(Boulder.slash_grade),
+                )
+                .group_by(Boulder.id)
+                .order_by(desc(Boulder.rating))
+            )
+            .unique()
+            .all()
+        )
+
+        boulder_result = [
+            BoulderAreaGradeStyleAscent(
+                id=boulder.id,
+                name=boulder.name,
+                grade=boulder.grade,
+                slash_grade=boulder.slash_grade,
+                rating=boulder.rating,
+                number_of_rating=boulder.number_of_rating,
+                url=boulder.url,
+                area=boulder.area,
+                styles=boulder.styles,
+                ascents=ascents,
+            )
+            for boulder, ascents in boulder_result
+        ]
+        result.append(BoulderByGrade(grade=grade, boulders=boulder_result))
+
+    return result
+
+
+def get_general_most_ascents_boulders_per_grade(db: Session, grade: str):
     result = db.execute(
         select(Boulder, func.count(Ascent.user_id).label("ascents"))
         .join(Boulder.ascents)
@@ -69,12 +142,67 @@ def get_general_most_ascents_boulders(db: Session, grade: str):
     ).all()
 
     return [
-        BoulderAreaAscent(
-            boulder=boulder,
+        BoulderAreaGradeStyleAscent(
+            id=boulder.id,
+            name=boulder.name,
+            rating=boulder.rating,
+            number_of_rating=boulder.number_of_rating,
+            url=boulder.url,
+            area=boulder.area,
+            styles=boulder.styles,
             ascents=ascents,
         )
         for boulder, ascents in result
     ]
+
+
+def get_general_most_ascents_boulders(db: Session):
+    grades = db.scalars(
+        select(Grade).order_by(desc(Grade.correspondence))
+    ).all()
+
+    result = []
+
+    for grade in grades:
+        boulder_result = (
+            db.execute(
+                select(Boulder, func.count(Ascent.user_id).label("ascents"))
+                .join(Boulder.ascents)
+                .join(Boulder.grade)
+                .options(
+                    joinedload(Boulder.area),
+                    joinedload(Boulder.grade),
+                    joinedload(Boulder.slash_grade),
+                    joinedload(Boulder.styles),
+                )
+                .where(Grade.id == grade.id)
+                .group_by(Ascent.boulder_id)
+                .order_by(desc("ascents"))
+                .limit(10)
+            )
+            .unique()
+            .all()
+        )
+
+        boulder_result = [
+            BoulderAreaGradeStyleAscent(
+                id=boulder.id,
+                name=boulder.name,
+                grade=boulder.grade,
+                slash_grade=boulder.slash_grade,
+                rating=boulder.rating,
+                number_of_rating=boulder.number_of_rating,
+                url=boulder.url,
+                area=boulder.area,
+                styles=boulder.styles,
+                ascents=ascents,
+            )
+            for boulder, ascents in boulder_result
+        ]
+
+        result.append(BoulderByGrade(grade=grade, boulders=boulder_result))
+
+    return result
 
 
 def get_general_hardest_boulders(db: Session, exclude_traverse: bool):
@@ -335,10 +463,7 @@ def get_general_ascents_per_year(db: Session, grade: str = None):
         )
         .select_from(join_clause)
         .where(
-            and_(
-                *query_filter,
-                func.extract("year", Ascent.log_date) >= 1995
-            )
+            and_(*query_filter, func.extract("year", Ascent.log_date) >= 1995)
         )
         .group_by("year")
         .order_by("year")

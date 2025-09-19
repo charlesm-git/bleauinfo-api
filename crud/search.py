@@ -9,7 +9,7 @@ from schemas.search import SearchBoulderArea
 def search(db: Session, text: str):
     boulders = db.scalars(
         select(Boulder)
-        .where(Boulder.name.ilike(f"%{text}%"))
+        .where(Boulder.name_normalized.ilike(f"%{text}%"))
         .options(
             joinedload(Boulder.area),
             joinedload(Boulder.grade),
@@ -19,7 +19,9 @@ def search(db: Session, text: str):
     ).all()
 
     areas = db.scalars(
-        select(Area).where(Area.name.ilike(f"%{text}%")).order_by(Area.name)
+        select(Area)
+        .where(Area.name_normalized.ilike(f"%{text}%"))
+        .order_by(Area.name)
     ).all()
 
     return SearchBoulderArea(boulders=boulders, areas=areas)

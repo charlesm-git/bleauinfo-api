@@ -4,8 +4,10 @@ from sqlalchemy.orm import Session
 
 from crud.stats import (
     get_general_best_rated_boulders,
-    get_most_ascents_areas,
+    get_general_best_rated_boulders_per_grade,
     get_general_most_ascents_boulders,
+    get_most_ascents_areas,
+    get_general_most_ascents_boulders_per_grade,
     get_general_hardest_boulders,
     get_general_grade_distribution,
     get_general_rating_distribution,
@@ -21,7 +23,8 @@ from database import get_db_session
 from schemas.area import AreaAscent
 from schemas.boulder import (
     Boulder,
-    BoulderAreaAscent,
+    BoulderAreaGradeStyleAscent,
+    BoulderByGrade,
     RatingCount,
 )
 from schemas.grade import GradeDistribution, GradeAscents
@@ -35,20 +38,36 @@ router = APIRouter(prefix="/stats", tags=["stats"])
 @router.get("/boulders/best-rated/{grade}")
 def read_general_best_rated_boulders(
     db: Session = Depends(get_db_session), grade: str = None
-) -> List[BoulderAreaAscent]:
+) -> List[BoulderAreaGradeStyleAscent]:
     if grade is None:
         raise HTTPException(status_code=422, detail="A grade must be provided")
-    boulders = get_general_best_rated_boulders(db=db, grade=grade)
+    boulders = get_general_best_rated_boulders_per_grade(db=db, grade=grade)
+    return boulders
+
+
+@router.get("/boulders/best-rated/")
+def read_general_best_rated_boulders(
+    db: Session = Depends(get_db_session),
+) -> List[BoulderByGrade]:
+    boulders = get_general_best_rated_boulders(db=db)
     return boulders
 
 
 @router.get("/boulders/most-ascents/{grade}")
-def read_general_most_ascents_boulders(
+def read_general_most_ascents_boulders_per_grade(
     db: Session = Depends(get_db_session), grade: str = None
-) -> List[BoulderAreaAscent]:
+) -> List[BoulderAreaGradeStyleAscent]:
     if grade is None:
         raise HTTPException(status_code=422, detail="A grade must be provided")
-    boulders = get_general_most_ascents_boulders(db=db, grade=grade)
+    boulders = get_general_most_ascents_boulders_per_grade(db=db, grade=grade)
+    return boulders
+
+
+@router.get("/boulders/most-ascents/")
+def read_general_most_ascents_boulders(
+    db: Session = Depends(get_db_session),
+) -> List[BoulderByGrade]:
+    boulders = get_general_most_ascents_boulders(db=db)
     return boulders
 
 
