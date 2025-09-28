@@ -21,7 +21,7 @@ class BoulderDetail(Boulder):
     area: "Area"
     styles: List["Style"] = []
     ascents: List["AscentRead"] = []
-    aggregated_ascents: List["AscentsPerMonthWithGeneral"]
+    aggregated_ascents: List["AscentsPerMonthWithGeneral"] = []
 
     class Config:
         from_attributes = True
@@ -32,18 +32,16 @@ class BoulderGrade(Boulder):
     slash_grade: Union["Grade", None] = None
 
 
-class BoulderAreaGradeStyleAscent(Boulder):
-    area: "Area"
-    grade: "Grade"
-    slash_grade: Union["Grade", None] = None
-    styles: List["Style"] = []
-    ascents: int
-
-
-class BoulderGradeArea(Boulder):
-    grade: "Grade"
-    slash_grade: Union["Grade", None] = None
+class BoulderGradeArea(BoulderGrade):
     area: Area
+
+
+class BoulderGradeAreaStyle(BoulderGradeArea):
+    styles: List["Style"] = []
+
+
+class BoulderGradeAreaStyleAscent(BoulderGradeAreaStyle):
+    ascents: int
 
 
 class BoulderGradeAscent(BaseModel):
@@ -61,7 +59,7 @@ class RatingCount(BaseModel):
 
 class BoulderByGrade(BaseModel):
     grade: "Grade"
-    boulders: List["BoulderAreaGradeStyleAscent"]
+    boulders: List["BoulderGradeAreaStyleAscent"]
 
 
 from schemas.area import Area

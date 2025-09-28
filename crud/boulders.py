@@ -1,5 +1,6 @@
 from sqlalchemy import select, func, cast, Float, case
 from sqlalchemy.orm import Session, joinedload
+from database import MONTH_LIST
 from models.boulder_style import boulder_style_table
 from models.boulder import Boulder
 from models.ascent import Ascent
@@ -45,48 +46,46 @@ def get_boulder(db: Session, id: int):
     total_ascents = select(func.count(Ascent.boulder_id)).scalar_subquery()
 
     # Monthly ascent distribution
-    aggregated_ascents = db.execute(
-        select(
-            func.extract("month", Ascent.log_date).label("month"),
-            func.round(
-                (
-                    func.count(case((Ascent.boulder_id == boulder.id, 1)))
-                    * 100
-                    / cast(boulder_total_repeats, Float)
-                ),
-                1,
-            ).label("boulder"),
-            func.round(
-                (
-                    func.count(Ascent.user_id)
-                    * 100
-                    / cast(total_ascents, Float)
-                ),
-                1,
-            ).label("general"),
+    aggregated_ascents = (
+        db.execute(
+            select(
+                func.extract("month", Ascent.log_date).label("month"),
+                func.round(
+                    (
+                        case(
+                            (
+                                boulder_total_repeats == 0,
+                                0,
+                            ),  # Handling division by 0
+                            else_=(
+                                func.count(
+                                    case((Ascent.boulder_id == boulder.id, 1))
+                                )
+                                * 100
+                                / cast(boulder_total_repeats, Float)
+                            ),
+                        )
+                    )
+                ).label("boulder"),
+                func.round(
+                    (
+                        func.count(Ascent.user_id)
+                        * 100
+                        / cast(total_ascents, Float)
+                    ),
+                    1,
+                ).label("general"),
+            )
+            .group_by("month")
+            .order_by("month")
         )
-        .group_by("month")
-        .order_by("month")
-    ).mappings().all()
-
-    month_list = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-    ]
+        .mappings()
+        .all()
+    )
 
     aggregated_ascents = [
         AscentsPerMonthWithGeneral(
-            month=month_list[month],
+            month=MONTH_LIST[month],
             boulder=aggregated_ascents[month]["boulder"],
             general=aggregated_ascents[month]["general"],
         )

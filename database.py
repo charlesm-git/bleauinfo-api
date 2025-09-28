@@ -1,14 +1,28 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-from scipy.sparse import load_npz
 
 
-db_path = "bleau_info-17-09-2025.db"
+DB_PATH = "bleau_info-17-09-2025.db"
 
-DATABASE_URL = f"sqlite:///{db_path}"
+DATABASE_URL = f"sqlite:///{DB_PATH}"
 engine = create_engine(DATABASE_URL, echo=False)
 
 RECOMMENDATION_MATRICES = {}
+
+MONTH_LIST = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+]
 
 
 def get_db_session():

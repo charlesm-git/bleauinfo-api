@@ -10,7 +10,7 @@ class Style(BaseModel):
 
 
 class StyleDistribution(BaseModel):
-    style: str
+    styleType: str
     boulders: int
 
     class Config:

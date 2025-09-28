@@ -23,5 +23,5 @@ def search(db: Session, text: str):
         .where(Area.name_normalized.ilike(f"%{text}%"))
         .order_by(Area.name)
     ).all()
-
+        
     return SearchBoulderArea(boulders=boulders, areas=areas)

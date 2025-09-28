@@ -23,7 +23,7 @@ from database import get_db_session
 from schemas.area import AreaAscent
 from schemas.boulder import (
     Boulder,
-    BoulderAreaGradeStyleAscent,
+    BoulderGradeAreaStyleAscent,
     BoulderByGrade,
     RatingCount,
 )
@@ -36,9 +36,9 @@ router = APIRouter(prefix="/stats", tags=["stats"])
 
 
 @router.get("/boulders/best-rated/{grade}")
-def read_general_best_rated_boulders(
+def read_general_best_rated_boulders_per_grade(
     db: Session = Depends(get_db_session), grade: str = None
-) -> List[BoulderAreaGradeStyleAscent]:
+) -> List[BoulderGradeAreaStyleAscent]:
     if grade is None:
         raise HTTPException(status_code=422, detail="A grade must be provided")
     boulders = get_general_best_rated_boulders_per_grade(db=db, grade=grade)
@@ -56,7 +56,7 @@ def read_general_best_rated_boulders(
 @router.get("/boulders/most-ascents/{grade}")
 def read_general_most_ascents_boulders_per_grade(
     db: Session = Depends(get_db_session), grade: str = None
-) -> List[BoulderAreaGradeStyleAscent]:
+) -> List[BoulderGradeAreaStyleAscent]:
     if grade is None:
         raise HTTPException(status_code=422, detail="A grade must be provided")
     boulders = get_general_most_ascents_boulders_per_grade(db=db, grade=grade)

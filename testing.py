@@ -1,7 +1,9 @@
 from sqlalchemy import Float, cast, desc, func, select
 from sqlalchemy.orm import Session
 
+from scipy.sparse import load_npz
 
+from crud.search import search
 from crud.areas import get_area_best_rated
 from crud.recommendation import get_recommended_boulder
 from crud.stats import (
@@ -19,12 +21,28 @@ from crud.stats import (
     get_top_setters,
     get_general_ascents_per_grade,
 )
-from database import engine
+from database import engine, get_recommendation_matrices
+from routers.recommendation import recommendation_extraction_algorithm
 
 
 if __name__ == "__main__":
     session = Session(engine)
-    result = get_general_best_rated_boulders(db=session)
-    for boulder in result:
-        print(boulder)
-    print(len(result))
+    # result = search(db=session, text="")
+    # print(result)
+    # matrices = {}
+    # matrices["ascents"] = load_npz("./similarity_ascent.npz")
+    # matrices["style"] = load_npz("./similarity_style.npz")
+    # matrices["grade"] = load_npz("./similarity_grade.npz")
+    # result = recommendation_extraction_algorithm(
+    #     boulder_ids=[35240],
+    #     ascent_weight=0.5,
+    #     grade_weight=0.25,
+    #     style_weight=0.25,
+    #     top_N=5,
+    #     matrices=(
+    #         matrices["ascents"],
+    #         matrices["style"],
+    #         matrices["grade"],
+    #     ),
+    # )
+    # print(result)

@@ -1,3 +1,4 @@
+from typing import Union
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -10,9 +11,12 @@ from schemas.search import SearchBoulderArea
 router = APIRouter(prefix="/search", tags=["search"])
 
 
-@router.get("/{text}")
+@router.get("/")
 def read_research(
-    text: str,
+    q: str = "",
     db: Session = Depends(get_db_session),
 ) -> SearchBoulderArea:
-    return search(db=db, text=text_normalizer(text))
+    if not q or not q.strip():
+        return SearchBoulderArea(boulders=[], areas=[])
+    
+    return search(db=db, text=text_normalizer(q))

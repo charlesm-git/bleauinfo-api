@@ -1,6 +1,7 @@
 from sqlalchemy import (
     Float,
     and_,
+    asc,
     cast,
     desc,
     exists,
@@ -9,6 +10,7 @@ from sqlalchemy import (
     case,
 )
 from sqlalchemy.orm import Session, joinedload
+from database import MONTH_LIST
 from models.area import Area
 from models.boulder import Boulder
 from models.boulder_style import boulder_style_table
@@ -19,7 +21,7 @@ from models.style import Style
 from models.user import User
 from schemas.area import AreaAscent
 from schemas.boulder import (
-    BoulderAreaGradeStyleAscent,
+    BoulderGradeAreaStyleAscent,
     BoulderByGrade,
     RatingCount,
 )
@@ -42,7 +44,12 @@ def get_general_best_rated_boulders_per_grade(db: Session, grade: str):
             )
             .join(Grade, Boulder.grade_id == Grade.id)
             .join(Ascent, Ascent.boulder_id == Boulder.id)
-            .options(joinedload(Boulder.area), joinedload(Boulder.styles))
+            .options(
+                joinedload(Boulder.area),
+                joinedload(Boulder.styles),
+                joinedload(Boulder.grade),
+                joinedload(Boulder.slash_grade),
+            )
             .group_by(Boulder.id)
             .order_by(desc(Boulder.rating))
         )
@@ -51,9 +58,11 @@ def get_general_best_rated_boulders_per_grade(db: Session, grade: str):
     )
 
     return [
-        BoulderAreaGradeStyleAscent(
+        BoulderGradeAreaStyleAscent(
             id=boulder.id,
             name=boulder.name,
+            grade=boulder.grade,
+            slash_grade=boulder.slash_grade,
             rating=boulder.rating,
             number_of_rating=boulder.number_of_rating,
             url=boulder.url,
@@ -108,7 +117,7 @@ def get_general_best_rated_boulders(db: Session):
         )
 
         boulder_result = [
-            BoulderAreaGradeStyleAscent(
+            BoulderGradeAreaStyleAscent(
                 id=boulder.id,
                 name=boulder.name,
                 grade=boulder.grade,
@@ -128,23 +137,32 @@ def get_general_best_rated_boulders(db: Session):
 
 
 def get_general_most_ascents_boulders_per_grade(db: Session, grade: str):
-    result = db.execute(
-        select(Boulder, func.count(Ascent.user_id).label("ascents"))
-        .join(Boulder.ascents)
-        .join(Boulder.grade)
-        .options(
-            joinedload(Boulder.area),
+    result = (
+        db.execute(
+            select(Boulder, func.count(Ascent.user_id).label("ascents"))
+            .join(Boulder.ascents)
+            .join(Boulder.grade)
+            .options(
+                joinedload(Boulder.area),
+                joinedload(Boulder.styles),
+                joinedload(Boulder.grade),
+                joinedload(Boulder.slash_grade),
+            )
+            .where(Grade.value == grade)
+            .group_by(Ascent.boulder_id)
+            .order_by(desc("ascents"))
+            .limit(10)
         )
-        .where(Grade.value == grade)
-        .group_by(Ascent.boulder_id)
-        .order_by(desc("ascents"))
-        .limit(10)
-    ).all()
+        .unique()
+        .all()
+    )
 
     return [
-        BoulderAreaGradeStyleAscent(
+        BoulderGradeAreaStyleAscent(
             id=boulder.id,
             name=boulder.name,
+            grade=boulder.grade,
+            slash_grade=boulder.slash_grade,
             rating=boulder.rating,
             number_of_rating=boulder.number_of_rating,
             url=boulder.url,
@@ -185,7 +203,7 @@ def get_general_most_ascents_boulders(db: Session):
         )
 
         boulder_result = [
-            BoulderAreaGradeStyleAscent(
+            BoulderGradeAreaStyleAscent(
                 id=boulder.id,
                 name=boulder.name,
                 grade=boulder.grade,
@@ -273,6 +291,7 @@ def get_general_grade_distribution(db: Session):
         select(Grade, func.count(Boulder.id))
         .join(Boulder, Boulder.grade_id == Grade.id)
         .group_by(Grade.correspondence)
+        .order_by(asc(Grade.correspondence))
     ).all()
 
     return [
@@ -291,7 +310,7 @@ def get_general_style_distribution(db: Session):
     ).all()
 
     return [
-        StyleDistribution(style=style, boulders=boulder_count)
+        StyleDistribution(styleType=style, boulders=boulder_count)
         for style, boulder_count in result
     ]
 
@@ -414,23 +433,8 @@ def get_general_ascents_per_month(db: Session, grade: str = None):
 
     result = db.execute(main_query).all()
 
-    month_list = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-    ]
-
     data = [
-        (month_list[month - 1], percentage) for month, percentage in result
+        (MONTH_LIST[month - 1], percentage) for month, percentage in result
     ]
 
     return [
@@ -470,7 +474,7 @@ def get_general_ascents_per_year(db: Session, grade: str = None):
     )
     result = db.execute(main_query).all()
     return [
-        AscentsPerYear(year=year, ascents=number_of_ascents)
+        AscentsPerYear(year=str(year), ascents=number_of_ascents)
         for year, number_of_ascents in result
     ]
 

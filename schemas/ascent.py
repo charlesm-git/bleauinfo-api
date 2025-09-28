@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Union
 from pydantic import BaseModel
 
 from schemas.user import User
@@ -39,7 +40,7 @@ class AscentsPerMonthWithGeneral(BaseModel):
 
 
 class AscentsPerYear(BaseModel):
-    year: int
+    year: str
     ascents: int
 
     class Config:
