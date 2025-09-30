@@ -1,10 +1,6 @@
-from scipy.sparse import load_npz
-
-from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from database import RECOMMENDATION_MATRICES
 from routers import (
     boulders,
     areas,
@@ -16,18 +12,7 @@ from routers import (
 )
 
 
-@asynccontextmanager
-async def matrix_load(app: FastAPI):
-    RECOMMENDATION_MATRICES["ascents"] = load_npz("./similarity_ascent.npz")
-    RECOMMENDATION_MATRICES["style"] = load_npz("./similarity_style.npz")
-    RECOMMENDATION_MATRICES["grade"] = load_npz("./similarity_grade.npz")
-    print("             Recommendation matrices loaded successfully.")
-    yield
-    RECOMMENDATION_MATRICES.clear()
-    print("             Recommendation matrices memory cleared.")
-
-
-app = FastAPI(lifespan=matrix_load)
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,

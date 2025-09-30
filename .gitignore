@@ -1,5 +1,4 @@
 .venv/
 __pycache__/
-requirements.txt
 old_db/
 testing.py

@@ -1,13 +1,16 @@
+from functools import lru_cache
+
+from scipy.sparse import load_npz
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
+
+from models import ascent
 
 
 DB_PATH = "bleau_info-17-09-2025.db"
 
 DATABASE_URL = f"sqlite:///{DB_PATH}"
 engine = create_engine(DATABASE_URL, echo=False)
-
-RECOMMENDATION_MATRICES = {}
 
 MONTH_LIST = [
     "January",
@@ -30,10 +33,12 @@ def get_db_session():
         yield session
 
 
+@lru_cache(maxsize=1)
 def get_recommendation_matrices():
     """Dependency that return the cached recommendation matrices"""
-    return (
-        RECOMMENDATION_MATRICES["ascents"],
-        RECOMMENDATION_MATRICES["style"],
-        RECOMMENDATION_MATRICES["grade"],
-    )
+    print("Matrices loading...")
+    ascents = load_npz("./similarity_ascent.npz")
+    style = load_npz("./similarity_style.npz")
+    grade = load_npz("./similarity_grade.npz")
+    print("Matrices loaded successfully")
+    return (ascents, style, grade)
