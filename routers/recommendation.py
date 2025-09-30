@@ -18,7 +18,7 @@ def post_recommendation(
     db: Session = Depends(get_db_session),
     matrices=Depends(get_recommendation_matrices),
 ) -> List[BoulderGradeAreaStyleAscent]:
-    print(request.boulder_ids)
+    
     recommended_boulder_ids = recommendation_extraction_algorithm(
         boulder_ids=request.boulder_ids,
         ascent_weight=request.ascent_weight,
@@ -27,22 +27,19 @@ def post_recommendation(
         top_N=request.top_N,
         matrices=matrices,
     )
-    print(recommended_boulder_ids)
     # Retrieve recommended boulders from the database
     recommended_boulders = get_recommended_boulder(
         db=db, boulder_ids=recommended_boulder_ids
     )
-    print(recommended_boulders)
+
     # Order recommended boulders
     recommended_boulders = {
         boulder.id: boulder for boulder in recommended_boulders
     }
-    print(recommended_boulders)
     ordered_boulders = [
         recommended_boulders[boulder_id]
         for boulder_id in recommended_boulder_ids
     ]
-    print(ordered_boulders)
 
     return ordered_boulders
 
