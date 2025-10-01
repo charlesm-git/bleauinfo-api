@@ -11,7 +11,7 @@ from schemas.search import SearchBoulderArea
 router = APIRouter(prefix="/search", tags=["search"])
 
 
-@router.get("/")
+@router.get("")
 def read_research(
     q: str = "",
     db: Session = Depends(get_db_session),

@@ -12,7 +12,7 @@ from schemas.recommendation import RecommendationRequest
 router = APIRouter(prefix="/recommendation", tags=["recommendation"])
 
 
-@router.post("/")
+@router.post("")
 def post_recommendation(
     request: RecommendationRequest,
     db: Session = Depends(get_db_session),

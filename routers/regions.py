@@ -10,7 +10,7 @@ from schemas.region import RegionDetail
 router = APIRouter(prefix="/regions", tags=["regions"])
 
 
-@router.get("/")
+@router.get("")
 def read_regions(
     db: Session = Depends(get_db_session),
 ) -> List[RegionDetail]:

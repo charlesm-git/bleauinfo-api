@@ -16,7 +16,7 @@ from schemas.boulder import Boulder
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.get("/")
+@router.get("")
 def read_users(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, le=100),

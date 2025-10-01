@@ -15,7 +15,7 @@ from schemas.boulder import Boulder
 router = APIRouter(prefix="/areas", tags=["areas"])
 
 
-@router.get("/")
+@router.get("")
 def read_areas(
     skip: int = Query(0, ge=0),
     limit: int = Query(None),

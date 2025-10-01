@@ -9,7 +9,7 @@ from schemas.boulder import Boulder, BoulderDetail
 router = APIRouter(prefix="/boulders", tags=["boulders"])
 
 
-@router.get("/")
+@router.get("")
 def read_boulders(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, le=100),

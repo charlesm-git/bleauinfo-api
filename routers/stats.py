@@ -45,7 +45,7 @@ def read_general_best_rated_boulders_per_grade(
     return boulders
 
 
-@router.get("/boulders/best-rated/")
+@router.get("/boulders/best-rated")
 def read_general_best_rated_boulders(
     db: Session = Depends(get_db_session),
 ) -> List[BoulderByGrade]:
@@ -63,7 +63,7 @@ def read_general_most_ascents_boulders_per_grade(
     return boulders
 
 
-@router.get("/boulders/most-ascents/")
+@router.get("/boulders/most-ascents")
 def read_general_most_ascents_boulders(
     db: Session = Depends(get_db_session),
 ) -> List[BoulderByGrade]:
