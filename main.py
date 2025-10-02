@@ -16,8 +16,11 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # your frontend URL
-    allow_credentials=True,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:8000",
+        "https://bleau-info-stats-frontend-948104408177.europe-west1.run.app",
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from models import ascent
 
 
-DB_PATH = "bleau_info-17-09-2025.db"
+DB_PATH = "bleau_info_stats.db"
 
 DATABASE_URL = f"sqlite:///{DB_PATH}"
 engine = create_engine(DATABASE_URL, echo=False)
