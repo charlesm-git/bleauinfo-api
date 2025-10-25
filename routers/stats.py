@@ -6,6 +6,7 @@ from crud.stats import (
     get_general_best_rated_boulders,
     get_general_best_rated_boulders_per_grade,
     get_general_most_ascents_boulders,
+    get_general_statistics,
     get_most_ascents_areas,
     get_general_most_ascents_boulders_per_grade,
     get_general_hardest_boulders,
@@ -27,6 +28,7 @@ from schemas.boulder import (
     BoulderByGrade,
     RatingCount,
 )
+from schemas.general import GeneralStatistics
 from schemas.grade import GradeDistribution, GradeAscents
 from schemas.ascent import AscentsPerMonth, AscentsPerYear
 from schemas.style import StyleDistribution
@@ -70,6 +72,10 @@ def read_general_most_ascents_boulders(
     boulders = get_general_most_ascents_boulders(db=db)
     return boulders
 
+@router.get("/general")
+def read_general_statistics(db: Session = Depends(get_db_session)) -> GeneralStatistics:
+    return  get_general_statistics(db=db)
+    
 
 @router.get("/boulders/hardest")
 def read_general_hardest_boulders(

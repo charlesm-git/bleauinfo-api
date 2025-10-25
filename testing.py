@@ -16,6 +16,7 @@ from crud.stats import (
     get_general_ascents_per_month,
     get_general_ascents_per_year,
     get_ascents_volume_distribution,
+    get_general_statistics,
     get_general_style_distribution,
     get_top_repeaters,
     get_top_setters,
@@ -27,6 +28,7 @@ from routers.recommendation import recommendation_extraction_algorithm
 
 if __name__ == "__main__":
     session = Session(engine)
+    get_general_statistics(session)
     # result = search(db=session, text="")
     # print(result)
     # matrices = {}

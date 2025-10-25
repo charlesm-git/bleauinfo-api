@@ -121,7 +121,6 @@ def get_area_best_rated(db: Session, area_id: int):
         .filter(
             and_(
                 Boulder.area_id == area_id,
-                Boulder.rating >= 4,
                 Boulder.number_of_rating >= 5,
             )
         )
@@ -129,6 +128,7 @@ def get_area_best_rated(db: Session, area_id: int):
         .join(Ascent, Boulder.id == Ascent.boulder_id)
         .group_by(Boulder.id)
         .order_by(desc(Boulder.rating))
+        .limit(15)
     ).all()
 
     return [

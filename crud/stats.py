@@ -25,10 +25,34 @@ from schemas.boulder import (
     BoulderByGrade,
     RatingCount,
 )
+from schemas.general import GeneralStatistics
 from schemas.grade import GradeDistribution, GradeAscents
 from schemas.ascent import AscentsPerMonth, AscentsPerYear
 from schemas.style import StyleDistribution
 from schemas.user import UserBoulderCount, UserAscentVolume
+
+
+def get_general_statistics(db: Session):
+    boulder_count = db.scalar(select(func.count(Boulder.id)))
+    area_count = db.scalar(select(func.count(Area.id)))
+    ascent_count = db.scalar(select(func.count(Ascent.user_id)))
+
+    subquery = (
+        select(func.avg(Grade.correspondence)).join(
+            Boulder, Boulder.grade_id == Grade.id
+        )
+    ).scalar_subquery()
+
+    average_grade = db.scalar(
+        select(Grade).where(Grade.correspondence == func.round(subquery))
+    )
+
+    return GeneralStatistics(
+        boulder_count=boulder_count,
+        area_count=area_count,
+        ascent_count=ascent_count,
+        average_grade=average_grade,
+    )
 
 
 def get_general_best_rated_boulders_per_grade(db: Session, grade: str):
@@ -86,10 +110,10 @@ def get_general_best_rated_boulders(db: Session):
                 joinedload(Boulder.slash_grade),
                 joinedload(Boulder.styles),
             )
-            .where(and_(Boulder.rating >= 4.6, Boulder.number_of_rating >= 10))
+            .where(and_(Boulder.rating >= 4.6, Boulder.number_of_rating >= 8))
             .group_by(Boulder.id)
             .order_by(
-                desc(Boulder.grade_id),  # Order by grade
+                desc(Boulder.rating),  # Order by grade
             )
         )
         .unique()
