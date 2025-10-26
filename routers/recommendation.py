@@ -43,6 +43,10 @@ def post_recommendation(
 
     return ordered_boulders
 
+@router.get("/load-matrices")
+def get_matrices(matrices=Depends(get_recommendation_matrices)):
+    return
+
 
 @router.get("/selection")
 def get_searched_boulders(
