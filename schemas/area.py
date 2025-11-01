@@ -39,9 +39,9 @@ class AreaStats(BaseModel):
         from_attributes = True
 
 
-class AreaAscent(BaseModel):
+class AreaCount(BaseModel):
     area: Area
-    ascents: int
+    count: int
 
     class Config:
         from_attributes = True

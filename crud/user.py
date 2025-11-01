@@ -6,7 +6,7 @@ from models.grade import Grade
 from models.ascent import Ascent
 from models.user import User
 from models.boulder_setter import boulder_setter_table
-from schemas.area import AreaAscent
+from schemas.area import AreaCount
 from schemas.user import UserStats
 from schemas.grade import GradeAscents
 
@@ -49,9 +49,7 @@ def get_username_from_id(db: Session, user_id: int):
 
 def get_number_of_ascents(db: Session, user_id: int):
     return db.scalar(
-        select(func.count(Ascent.boulder_id)).where(
-            Ascent.user_id == user_id
-        )
+        select(func.count(Ascent.boulder_id)).where(Ascent.user_id == user_id)
     )
 
 
@@ -105,7 +103,7 @@ def get_user_area_distribution(db: Session, user_id: int):
         .group_by(Area)
         .order_by(desc("number_of_ascents"))
     ).all()
-    return [AreaAscent(area=area, ascents=count) for area, count in result]
+    return [AreaCount(area=area, count=count) for area, count in result]
 
 
 def get_user_stats(db: Session, user_id: int):

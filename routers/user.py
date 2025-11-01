@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from database import get_db_session
-from crud.users import (
+from crud.user import (
     get_all_users,
     get_user,
     get_user_boulders_set,
@@ -13,7 +13,7 @@ from crud.users import (
 from schemas.user import User, UserDetail, UserStats
 from schemas.boulder import Boulder
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(prefix="/user", tags=["user"])
 
 
 @router.get("")
@@ -35,7 +35,7 @@ def read_user(
     return boulder
 
 
-@router.get("/{id}/boulders/set")
+@router.get("/{id}/boulder/set")
 def read_boulders_set_by(
     id: int, db: Session = Depends(get_db_session)
 ) -> List[Boulder]:
@@ -43,7 +43,7 @@ def read_boulders_set_by(
     return boulders
 
 
-@router.get("/{id}/boulders/repeats")
+@router.get("/{id}/boulder/ascent")
 def read_boulders_repeated_by(
     id: int, db: Session = Depends(get_db_session)
 ) -> List[Boulder]:

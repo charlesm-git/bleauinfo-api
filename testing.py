@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from scipy.sparse import load_npz
 
 from crud.search import search
-from crud.areas import get_area_best_rated
+from crud.area import get_area_best_rated
 from crud.recommendation import get_recommended_boulder
 from crud.stats import (
     get_general_best_rated_boulders,
@@ -16,7 +16,7 @@ from crud.stats import (
     get_general_ascents_per_month,
     get_general_ascents_per_year,
     get_ascents_volume_distribution,
-    get_general_statistics,
+    get_general_statistics_home_page,
     get_general_style_distribution,
     get_top_repeaters,
     get_top_setters,
@@ -28,7 +28,7 @@ from routers.recommendation import recommendation_extraction_algorithm
 
 if __name__ == "__main__":
     session = Session(engine)
-    get_general_statistics(session)
+    get_general_statistics_home_page(session)
     # result = search(db=session, text="")
     # print(result)
     # matrices = {}

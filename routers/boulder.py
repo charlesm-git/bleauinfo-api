@@ -2,11 +2,11 @@ from typing import List
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from crud.boulders import get_all_boulders, get_boulder
+from crud.boulder import get_all_boulders, get_boulder
 from database import get_db_session
 from schemas.boulder import Boulder, BoulderDetail
 
-router = APIRouter(prefix="/boulders", tags=["boulders"])
+router = APIRouter(prefix="/boulder", tags=["boulder"])
 
 
 @router.get("")

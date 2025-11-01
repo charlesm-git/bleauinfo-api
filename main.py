@@ -2,10 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routers import (
-    boulders,
-    areas,
-    regions,
-    users,
+    area,
+    boulder,
+    region,
+    user,
     stats,
     search,
     recommendation,
@@ -25,10 +25,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(boulders.router)
-app.include_router(areas.router)
-app.include_router(regions.router)
-app.include_router(users.router)
+app.include_router(boulder.router)
+app.include_router(area.router)
+app.include_router(region.router)
+app.include_router(user.router)
 app.include_router(stats.router)
 app.include_router(search.router)
 app.include_router(recommendation.router)

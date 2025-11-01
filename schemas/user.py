@@ -2,7 +2,7 @@ from typing import List
 from pydantic import BaseModel
 
 from schemas.grade import Grade, GradeAscents
-from schemas.area import AreaAscent
+from schemas.area import AreaCount
 
 
 class User(BaseModel):
@@ -23,7 +23,7 @@ class UserStats(BaseModel):
     average_grade: Grade
     hardest_grade: Grade
     grade_distribution: List[GradeAscents]
-    area_distribution: List[AreaAscent]
+    area_distribution: List[AreaCount]
 
     class Config:
         from_attributes = True

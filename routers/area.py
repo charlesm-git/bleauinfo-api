@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from crud.areas import (
+from crud.area import (
     get_all_areas,
     get_area,
     get_area_stats,
@@ -12,7 +12,7 @@ from database import get_db_session
 from schemas.area import Area, AreaDetail, AreaStats
 from schemas.boulder import Boulder
 
-router = APIRouter(prefix="/areas", tags=["areas"])
+router = APIRouter(prefix="/area", tags=["area"])
 
 
 @router.get("")

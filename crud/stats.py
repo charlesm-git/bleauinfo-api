@@ -19,7 +19,7 @@ from models.grade import Grade
 from models.ascent import Ascent
 from models.style import Style
 from models.user import User
-from schemas.area import AreaAscent
+from schemas.area import AreaCount
 from schemas.boulder import (
     BoulderGradeAreaStyleAscent,
     BoulderByGrade,
@@ -32,7 +32,8 @@ from schemas.style import StyleDistribution
 from schemas.user import UserBoulderCount, UserAscentVolume
 
 
-def get_general_statistics(db: Session):
+# Home page
+def get_general_statistics_home_page(db: Session):
     boulder_count = db.scalar(select(func.count(Boulder.id)))
     area_count = db.scalar(select(func.count(Area.id)))
     ascent_count = db.scalar(select(func.count(Ascent.user_id)))
@@ -55,6 +56,7 @@ def get_general_statistics(db: Session):
     )
 
 
+# Best rated boulders
 def get_general_best_rated_boulders_per_grade(db: Session, grade: str):
     result = (
         db.execute(
@@ -99,7 +101,7 @@ def get_general_best_rated_boulders_per_grade(db: Session, grade: str):
 
 
 def get_general_best_rated_boulders(db: Session):
-    # Get all boulders with a rating above 4.6 and more than 5 recorded ratings
+    # Get all boulders with a rating above 4.6 and more than 8 recorded ratings
     boulders = (
         db.execute(
             select(Boulder, func.count(Ascent.user_id).label("ascents"))
@@ -156,6 +158,7 @@ def get_general_best_rated_boulders(db: Session):
     return result
 
 
+# Most ascents boulders
 def get_general_most_ascents_boulders_per_grade(db: Session, grade: str):
     result = (
         db.execute(
@@ -271,6 +274,7 @@ def get_general_most_ascents_boulders(db: Session):
     return result
 
 
+# Hardest boulders
 def get_general_hardest_boulders(db: Session, exclude_traverse: bool):
     query = select(Boulder)
     if exclude_traverse:
@@ -321,7 +325,8 @@ def get_general_rating_distribution(db: Session):
     ]
 
 
-def get_most_ascents_areas(db: Session):
+# Area based statistics
+def get_areas_with_most_ascents(db: Session):
     result = db.execute(
         select(Area, func.count(Ascent.user_id).label("ascents_count"))
         .join(Boulder, Boulder.area_id == Area.id)
@@ -331,9 +336,22 @@ def get_most_ascents_areas(db: Session):
         .limit(10)
     ).all()
 
-    return [AreaAscent(area=area, ascents=count) for area, count in result]
+    return [AreaCount(area=area, count=ascents) for area, ascents in result]
 
 
+def get_areas_with_most_boulders(db: Session):
+    result = db.execute(
+        select(Area, func.count(Boulder.id).label("boulder_count"))
+        .join(Boulder, Boulder.area_id == Area.id)
+        .group_by(Area.id)
+        .order_by(desc("boulder_count"))
+        .limit(10)
+    ).all()
+
+    return [AreaCount(area=area, count=boulders) for area, boulders in result]
+
+
+# Grade based statistics
 def get_general_grade_distribution(db: Session):
     result = db.execute(
         select(Grade, func.count(Boulder.id))
@@ -348,6 +366,21 @@ def get_general_grade_distribution(db: Session):
     ]
 
 
+def get_general_ascents_per_grade(db: Session):
+    result = db.execute(
+        select(Grade, func.count(Ascent.boulder_id))
+        .join(Boulder, Boulder.grade_id == Grade.id)
+        .join(Ascent, Boulder.id == Ascent.boulder_id)
+        .group_by(Grade.id)
+        .order_by(Grade.id)
+    ).all()
+
+    return [
+        GradeAscents(grade=grade, ascents=ascents) for grade, ascents in result
+    ]
+
+
+# Style based statistics
 def get_general_style_distribution(db: Session):
     result = db.execute(
         select(Style.style, func.count(Boulder.id).label("boulder_count"))
@@ -363,6 +396,7 @@ def get_general_style_distribution(db: Session):
     ]
 
 
+# User based statistics
 def get_top_repeaters(db: Session):
     result = db.execute(
         select(User, func.count(Ascent.boulder_id).label("boulder_count"))
@@ -438,6 +472,7 @@ def get_ascents_volume_distribution(db: Session):
     ]
 
 
+# Time based statistics
 def get_general_ascents_per_month(db: Session, grade: str = None):
     query_filter = []
     join_clause = Ascent
@@ -524,18 +559,4 @@ def get_general_ascents_per_year(db: Session, grade: str = None):
     return [
         AscentsPerYear(year=str(year), ascents=number_of_ascents)
         for year, number_of_ascents in result
-    ]
-
-
-def get_general_ascents_per_grade(db: Session):
-    result = db.execute(
-        select(Grade, func.count(Ascent.boulder_id))
-        .join(Boulder, Boulder.grade_id == Grade.id)
-        .join(Ascent, Boulder.id == Ascent.boulder_id)
-        .group_by(Grade.id)
-        .order_by(Grade.id)
-    ).all()
-
-    return [
-        GradeAscents(grade=grade, ascents=ascents) for grade, ascents in result
     ]
