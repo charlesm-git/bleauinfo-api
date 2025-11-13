@@ -1,3 +1,5 @@
+from calendar import month
+from datetime import date
 from sqlalchemy import (
     Float,
     and_,
@@ -516,17 +518,16 @@ def get_general_ascents_per_month(db: Session, grade: str = None):
 
     result = db.execute(main_query).all()
 
-    data = [
-        (MONTH_LIST[month - 1], percentage) for month, percentage in result
-    ]
+    result_dict = {month: ascents for month, ascents in result}
 
     return [
-        AscentsPerMonth(month=month, percentage=pourcentage)
-        for month, pourcentage in data
+        AscentsPerMonth(month=month, percentage=result_dict.get(index + 1, 0))
+        for index, month in enumerate(MONTH_LIST)
     ]
 
 
 def get_general_ascents_per_year(db: Session, grade: str = None):
+
     query_filter = []
     join_clause = Ascent
 
@@ -556,7 +557,13 @@ def get_general_ascents_per_year(db: Session, grade: str = None):
         .order_by("year")
     )
     result = db.execute(main_query).all()
+
+    # Convert result to dictionary for lookup
+    result_dict = {int(year): ascents for year, ascents in result}
+
+    # Single pass through years - O(n)
+    current_year = date.today().year
     return [
-        AscentsPerYear(year=str(year), ascents=number_of_ascents)
-        for year, number_of_ascents in result
+        AscentsPerYear(year=str(year), ascents=result_dict.get(year, 0))
+        for year in range(1995, current_year + 1)
     ]
