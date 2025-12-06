@@ -32,8 +32,8 @@ class AreaStats(BaseModel):
     average_grade: Union["Grade", None]
     ascents: int
     grade_distribution: List["GradeDistribution"]
-    most_climbed_boulders: List["BoulderGradeAscent"]
-    best_rated_boulders: List["BoulderGradeAscent"]
+    most_climbed_boulders: List["BoulderWithAscentCount"]
+    best_rated_boulders: List["BoulderWithAscentCount"]
 
     class Config:
         from_attributes = True
@@ -49,4 +49,4 @@ class AreaCount(BaseModel):
 
 from schemas.grade import Grade, GradeDistribution
 from schemas.region import Region
-from schemas.boulder import BoulderGradeAscent
+from schemas.boulder import BoulderWithAscentCount

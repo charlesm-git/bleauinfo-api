@@ -12,7 +12,6 @@ from crud.stats import (
     get_general_most_ascents_boulders_per_grade,
     get_general_hardest_boulders,
     get_general_grade_distribution,
-    get_general_rating_distribution,
     get_general_ascents_per_grade,
     get_ascents_volume_distribution,
     get_general_style_distribution,
@@ -25,9 +24,8 @@ from database import get_db_session
 from schemas.area import AreaCount
 from schemas.boulder import (
     Boulder,
-    BoulderGradeAreaStyleAscent,
+    BoulderWithAscentCount,
     BoulderByGrade,
-    RatingCount,
 )
 from schemas.general import GeneralStatistics
 from schemas.grade import GradeDistribution, GradeAscents
@@ -48,7 +46,7 @@ def read_general_statistics(
 @router.get("/boulder/best-rated/{grade}")
 def read_general_best_rated_boulders_per_grade(
     db: Session = Depends(get_db_session), grade: str = None
-) -> List[BoulderGradeAreaStyleAscent]:
+) -> List[BoulderWithAscentCount]:
     if grade is None:
         raise HTTPException(status_code=422, detail="A grade must be provided")
     boulders = get_general_best_rated_boulders_per_grade(db=db, grade=grade)
@@ -66,7 +64,7 @@ def read_general_best_rated_boulders(
 @router.get("/boulder/most-ascents/{grade}")
 def read_general_most_ascents_boulders_per_grade(
     db: Session = Depends(get_db_session), grade: str = None
-) -> List[BoulderGradeAreaStyleAscent]:
+) -> List[BoulderWithAscentCount]:
     if grade is None:
         raise HTTPException(status_code=422, detail="A grade must be provided")
     boulders = get_general_most_ascents_boulders_per_grade(db=db, grade=grade)
@@ -88,14 +86,6 @@ def read_general_hardest_boulders(
     boulders = get_general_hardest_boulders(
         db=db, exclude_traverse=exclude_traverse
     )
-    return boulders
-
-
-@router.get("/rating/distribution")
-def read_general_rating_distribution(
-    db: Session = Depends(get_db_session), exclude_traverse: bool = False
-) -> List[RatingCount]:
-    boulders = get_general_rating_distribution(db=db)
     return boulders
 
 

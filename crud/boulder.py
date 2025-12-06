@@ -5,7 +5,7 @@ from models.boulder_style import boulder_style_table
 from models.boulder import Boulder
 from models.ascent import Ascent
 from models.style import Style
-from schemas.boulder import BoulderDetail
+from schemas.boulder import BoulderWithFullDetail
 from schemas.ascent import AscentsPerMonthWithGeneral
 
 
@@ -92,7 +92,7 @@ def get_boulder(db: Session, id: int):
         for month in range(12)
     ]
 
-    return BoulderDetail(
+    return BoulderWithFullDetail(
         id=boulder.id,
         name=boulder.name,
         rating=boulder.rating,

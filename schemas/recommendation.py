@@ -3,9 +3,6 @@ from __future__ import annotations
 from typing import List
 from pydantic import BaseModel
 
-from schemas.area import Area
-from schemas.grade import Grade
-
 
 class RecommendationRequest(BaseModel):
     boulder_ids: List[int]

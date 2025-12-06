@@ -23,9 +23,8 @@ from models.style import Style
 from models.user import User
 from schemas.area import AreaCount
 from schemas.boulder import (
-    BoulderGradeAreaStyleAscent,
+    BoulderWithAscentCount,
     BoulderByGrade,
-    RatingCount,
 )
 from schemas.general import GeneralStatistics
 from schemas.grade import GradeDistribution, GradeAscents
@@ -86,7 +85,7 @@ def get_general_best_rated_boulders_per_grade(db: Session, grade: str):
     )
 
     return [
-        BoulderGradeAreaStyleAscent(
+        BoulderWithAscentCount(
             id=boulder.id,
             name=boulder.name,
             grade=boulder.grade,
@@ -137,7 +136,7 @@ def get_general_best_rated_boulders(db: Session):
             result_map[grade_id] = []
 
         result_map[grade_id].append(
-            BoulderGradeAreaStyleAscent(
+            BoulderWithAscentCount(
                 id=boulder.id,
                 name=boulder.name,
                 grade=boulder.grade,
@@ -183,7 +182,7 @@ def get_general_most_ascents_boulders_per_grade(db: Session, grade: str):
     )
 
     return [
-        BoulderGradeAreaStyleAscent(
+        BoulderWithAscentCount(
             id=boulder.id,
             name=boulder.name,
             grade=boulder.grade,
@@ -253,7 +252,7 @@ def get_general_most_ascents_boulders(db: Session):
             result_map[grade_id] = []
 
         result_map[grade_id].append(
-            BoulderGradeAreaStyleAscent(
+            BoulderWithAscentCount(
                 id=boulder.id,
                 name=boulder.name,
                 grade=boulder.grade,
@@ -313,18 +312,6 @@ def get_general_hardest_boulders(db: Session, exclude_traverse: bool):
     )
 
     return db.scalars(query).all()
-
-
-def get_general_rating_distribution(db: Session):
-    result = db.execute(
-        select(Boulder.rating, func.count(Boulder.id))
-        .group_by(Boulder.rating)
-        .order_by(desc(Boulder.rating))
-    ).all()
-
-    return [
-        RatingCount(rating=rating, count=count) for rating, count in result
-    ]
 
 
 # Area based statistics

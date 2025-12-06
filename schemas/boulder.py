@@ -15,7 +15,7 @@ class Boulder(BaseModel):
         from_attributes = True
 
 
-class BoulderDetail(Boulder):
+class BoulderWithFullDetail(Boulder):
     grade: "Grade"
     slash_grade: Union["Grade", None] = None
     area: "Area"
@@ -23,43 +23,23 @@ class BoulderDetail(Boulder):
     ascents: List["AscentRead"] = []
     aggregated_ascents: List["AscentsPerMonthWithGeneral"] = []
 
-    class Config:
-        from_attributes = True
 
 
-class BoulderGrade(Boulder):
+class BoulderWithAscentCount(Boulder):
     grade: "Grade"
     slash_grade: Union["Grade", None] = None
-
-
-class BoulderGradeArea(BoulderGrade):
     area: Area
-
-
-class BoulderGradeAreaStyle(BoulderGradeArea):
     styles: List["Style"] = []
-
-
-class BoulderGradeAreaStyleAscent(BoulderGradeAreaStyle):
     ascents: int
-
-
-class BoulderGradeAscent(BaseModel):
-    boulder: BoulderGrade
-    ascents: int
-
-    class Config:
-        from_attributes = True
-
-
-class RatingCount(BaseModel):
-    rating: float | None
-    count: int
+    
+    @classmethod
+    def from_query_result(cls, boulder, ascent_count):
+        return cls.model_validate({**boulder.__dict__, "ascents": ascent_count})
 
 
 class BoulderByGrade(BaseModel):
     grade: "Grade"
-    boulders: List["BoulderGradeAreaStyleAscent"]
+    boulders: List["BoulderWithAscentCount"]
 
 
 from schemas.area import Area

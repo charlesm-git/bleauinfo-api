@@ -1,3 +1,4 @@
+from shlex import join
 from sqlalchemy import and_, desc, func, select
 from sqlalchemy.orm import Session, joinedload, outerjoin
 from models.area import Area
@@ -5,7 +6,7 @@ from models.boulder import Boulder
 from models.grade import Grade
 from models.ascent import Ascent
 from schemas.area import AreaStats
-from schemas.boulder import BoulderGradeAscent
+from schemas.boulder import BoulderWithAscentCount, BoulderWithFullDetail
 from schemas.grade import GradeDistribution
 
 
@@ -72,21 +73,30 @@ def get_area_grade_distribution(db: Session, area_id: int):
 
 
 def get_area_most_climbed_boulders(db: Session, area_id: int, limit: int = 10):
-    result = db.execute(
-        select(
-            Boulder,
-            func.count(Ascent.user_id).label("ascents"),
+    result = (
+        db.execute(
+            select(
+                Boulder,
+                func.count(Ascent.user_id).label("ascents"),
+            )
+            .where(Boulder.area_id == area_id)
+            .options(
+                joinedload(Boulder.grade),
+                joinedload(Boulder.slash_grade),
+                joinedload(Boulder.area),
+                joinedload(Boulder.styles),
+            )
+            .order_by(desc("ascents"))
+            .join(Ascent, Boulder.id == Ascent.boulder_id)
+            .group_by(Ascent.boulder_id)
+            .limit(limit)
         )
-        .where(Boulder.area_id == area_id)
-        .options(joinedload(Boulder.grade), joinedload(Boulder.slash_grade))
-        .order_by(desc("ascents"))
-        .join(Ascent, Boulder.id == Ascent.boulder_id)
-        .group_by(Ascent.boulder_id)
-        .limit(limit)
-    ).all()
+        .unique()
+        .all()
+    )
 
     return [
-        BoulderGradeAscent(boulder=boulder, ascents=ascents)
+        BoulderWithAscentCount.from_query_result(boulder, ascents)
         for boulder, ascents in result
     ]
 
@@ -116,22 +126,31 @@ def get_area_total_ascents(db: Session, area_id: int):
 
 
 def get_area_best_rated(db: Session, area_id: int):
-    result = db.execute(
-        select(Boulder, func.count(Ascent.user_id).label("ascents"))
-        .filter(
-            and_(
-                Boulder.area_id == area_id,
-                Boulder.number_of_rating >= 5,
+    result = (
+        db.execute(
+            select(Boulder, func.count(Ascent.user_id).label("ascents"))
+            .filter(
+                and_(
+                    Boulder.area_id == area_id,
+                    Boulder.number_of_rating >= 5,
+                )
             )
+            .options(
+                joinedload(Boulder.grade),
+                joinedload(Boulder.slash_grade),
+                joinedload(Boulder.area),
+                joinedload(Boulder.styles),
+            )
+            .join(Ascent, Boulder.id == Ascent.boulder_id)
+            .group_by(Boulder.id)
+            .order_by(desc(Boulder.rating))
+            .limit(15)
         )
-        .options(joinedload(Boulder.grade), joinedload(Boulder.slash_grade))
-        .join(Ascent, Boulder.id == Ascent.boulder_id)
-        .group_by(Boulder.id)
-        .order_by(desc(Boulder.rating))
-        .limit(15)
-    ).all()
+        .unique()
+        .all()
+    )
 
     return [
-        BoulderGradeAscent(boulder=boulder, ascents=ascents)
+        BoulderWithAscentCount.from_query_result(boulder, ascents)
         for boulder, ascents in result
     ]

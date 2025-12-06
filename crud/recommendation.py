@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session, joinedload
 from helper import text_normalizer
 from models.ascent import Ascent
 from models.boulder import Boulder
-from schemas.boulder import BoulderGradeAreaStyleAscent
+from schemas.boulder import BoulderWithAscentCount
 
 
 def get_recommended_boulder(db: Session, boulder_ids: List[int]):
@@ -26,7 +26,7 @@ def get_recommended_boulder(db: Session, boulder_ids: List[int]):
         .all()
     )
     return [
-        BoulderGradeAreaStyleAscent(
+        BoulderWithAscentCount(
             id=boulder.id,
             name=boulder.name,
             grade=boulder.grade,
@@ -62,7 +62,7 @@ def get_selected_boulder(db: Session, text: str):
         .all()
     )
     return [
-        BoulderGradeAreaStyleAscent(
+        BoulderWithAscentCount(
             id=boulder.id,
             name=boulder.name,
             grade=boulder.grade,

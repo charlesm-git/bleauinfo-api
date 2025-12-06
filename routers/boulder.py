@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from crud.boulder import get_all_boulders, get_boulder
 from database import get_db_session
-from schemas.boulder import Boulder, BoulderDetail
+from schemas.boulder import Boulder, BoulderWithFullDetail
 
 router = APIRouter(prefix="/boulder", tags=["boulder"])
 
@@ -23,6 +23,6 @@ def read_boulders(
 def read_boulder(
     id: int,
     db: Session = Depends(get_db_session),
-) -> BoulderDetail:
+) -> BoulderWithFullDetail:
     boulder = get_boulder(db=db, id=id)
     return boulder
