@@ -1,66 +1,109 @@
 # 🧠 Bleau.Info Statistics API
-This API provides statistical data for bouldering repetitions in the Fontainebleau area. All data is extracted from bleau.info. It exposes multiple endpoints to query repetition counts, grades, monthly activity, and other metrics. It is designed to be consumed by a frontend interface (e.g., React) and optimized for read-only access in production.
+
+REST API providing statistical data and boulder recommendations for the Fontainebleau bouldering area. All data is sourced from [bleau.info](https://bleau.info). The API serves a React frontend and is optimized for read-only access in production.
 
 ## 🚀 Features
-Access statistical bouldering data by area, grade, and time
-Clean architecture with SQLAlchemy and Pydantic
-Read-only database support (SQLite)
+
+- Statistical bouldering data by area, grade, style, and time
+- Boulder recommendation engine using precomputed similarity matrices (ascent, grade, style)
+- Full-text search across boulders and areas
+- Clean architecture with SQLAlchemy models and Pydantic schemas
 
 ## 📦 Tech Stack
-* Backend Framework: FastAPI
-* ORM: SQLAlchemy
-* Database: SQLite (local)
 
+| Component | Technology |
+|-----------|-----------|
+| Framework | FastAPI |
+| ORM | SQLAlchemy |
+| Database | SQLite (read-only) |
+| ML/Recommendations | NumPy, SciPy (sparse matrices) |
+| Deployment | Docker (Python 3.13 Alpine) → Google Cloud Run |
+| Package Manager | Poetry |
 
-## API Endpoints
+## 🏗️ Project Structure
 
-All endpoints are `GET` requests.
+```
+├── main.py              # App entrypoint & router registration
+├── database.py          # DB session & recommendation matrix loading
+├── crud/                # Database query logic
+├── models/              # SQLAlchemy ORM models
+├── routers/             # FastAPI route definitions
+├── schemas/             # Pydantic request/response schemas
+├── similarity_*.npz     # Precomputed recommendation matrices
+└── Dockerfile           # Production container
+```
+
+## 🔌 API Endpoints
 
 ### 🧗‍♂️ Boulders
-- `/boulders`: List all boulders (supports pagination and filtering, e.g., by style)
-- `/boulders/{id}`: Get details of a specific boulder
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/boulders` | List all boulders (pagination & filtering) |
+| GET | `/boulders/{id}` | Get boulder details |
 
 ### 🗺️ Areas
-- `/areas`: List all areas  
-- `/areas/{id}`: Get details of a specific area  
-- `/areas/{id}/boulders`: List all boulders in a given area  
-- `/areas/{id}/stats`: Get area stats (boulder count, grade distribution, most climbed boulder, average difficulty, total repetitions)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/areas` | List all areas |
+| GET | `/areas/{id}` | Get area details |
+| GET | `/areas/{id}/boulders` | List boulders in an area |
+| GET | `/areas/{id}/stats` | Area stats (count, grade distribution, etc.) |
 
 ### 🌍 Regions
-- `/regions`: List all regions  
-- `/regions/{id}/areas`: List all areas in a region
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/regions` | List all regions |
+| GET | `/regions/{id}/areas` | List areas in a region |
 
 ### 👤 Users
-- `/users`: List all users  
-- `/users/{id}`: Get user details  
-- `/users/{id}/boulders/set`: List of boulders set by the user  
-- `/users/{id}/boulders/repeats`: List of boulders repeated by the user  
-- `/users/{id}/stats`: User stats (total repeats, grade distribution, average grade, hardest climb, most climbed area, etc.)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/users` | List all users |
+| GET | `/users/{id}` | Get user details |
+| GET | `/users/{id}/boulders/set` | Boulders set by user |
+| GET | `/users/{id}/boulders/repeats` | Boulders repeated by user |
+| GET | `/users/{id}/stats` | User stats |
 
 ### 🔍 Search
-- `/{test}`: Search Boulders and Areas matching the `text`
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/search/{text}` | Search boulders and areas |
+
+### 🎯 Recommendation
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/recommendation` | Get boulder recommendations based on selected boulders, with configurable ascent/grade/style weights |
 
 ### 📊 Statistics
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/stats/boulders/top-rated/{grade}` | Top 10 rated boulders for a grade |
+| GET | `/stats/boulders/most-ascents/{grade}` | Top 10 most repeated boulders |
+| GET | `/stats/boulders/hardest` | Boulders graded 8c+ |
+| GET | `/stats/boulders/styles/distribution` | Boulder count per style |
+| GET | `/stats/boulders/ratings/distribution` | Boulder count per rating |
+| GET | `/stats/areas/most-ascents` | Top 10 areas by repeats |
+| GET | `/stats/grades/distribution` | Boulders per grade |
+| GET | `/stats/users/top-setters` | Top 10 boulder setters |
+| GET | `/stats/users/top-repeaters` | Top 10 repeaters |
+| GET | `/stats/users/repeat-volume` | User repeat volume histogram |
+| GET | `/stats/ascents/per-month` | Monthly ascent distribution |
+| GET | `/stats/ascents/per-year` | Yearly ascent totals |
+| GET | `/stats/ascents/per-grade` | Ascents per grade |
 
-#### Boulders
-- `/stats/boulders/top-rated/{grade}`: Top 10 rated boulders for a specific grade  
-- `/stats/boulders/most-ascents/{grade}`: Top 10 most repeated boulders  
-- `/stats/boulders/hardest`: Boulders graded 8c and above  
-- `/stats/boulders/styles/distribution`: Count of boulders per style  
-- `/stats/boulders/ratings/distribution`: Count of boulders per rating
+## 🚀 Getting Started
 
-#### Areas
-- `/stats/areas/most-ascents`: Top 10 areas with most repeats
+```bash
+# Install dependencies
+poetry install
 
-#### Grades
-- `/stats/grades/distribution`: Number of boulders per grade
+# Run locally
+uvicorn main:app --reload --port 8000
+```
 
-#### Users
-- `/stats/users/top-setters`: Top 10 users by number of boulders set  
-- `/stats/users/top-repeaters`: Top 10 users by number of boulders repeated  
-- `/stats/users/repeat-volume`: Histogram of users by repeat volume
+## 🐳 Docker
 
-#### Repeats
-- `/stats/ascents/per-month`: Monthly ascents percentage distribution  
-- `/stats/ascents/per-year`: Total number of ascents per year
-- `/stats/ascents/per-grade`: Total number of ascents per grade
+```bash
+docker build -t bleauinfo-api .
+docker run -p 8080:8080 bleauinfo-api
+```
